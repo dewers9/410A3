@@ -1,10 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <curl/curl.h>
 #include <unistd.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <termios.h>
+
+#define SERVER_IP "127.0.0.1"  // Server IP address
+#define SERVER_PORT 8080        // Server port number as per your server configuration
+#define BUFFER_SIZE 1024        // Size of the buffer for incoming data
+
 
 // Function to write data received from the server to a buffer
 static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -60,26 +67,60 @@ int send_to_arduino(const char *portname, const char *data) {
     return 0;
 }
 
-int main(void) {
-    CURL *curl;
-    CURLcode res;
-    char buffer[128]; // Buffer for the HTTP response
+int main() {
+    int sockfd, n;
+    struct sockaddr_in serv_addr;
+    char sendbuffer[BUFFER_SIZE];
+    char recvbuffer[BUFFER_SIZE];
 
-    curl = curl_easy_init();
-    if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "http://yourserver.com/time"); // Your server URL
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)buffer);
-        
-        res = curl_easy_perform(curl);
-        if(res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        } else {
-            printf("Time received: %s\n", buffer);
-            send_to_arduino("/dev/ttyUSB0", buffer); // Replace with your Arduino serial port
-        }
-
-        curl_easy_cleanup(curl);
+    // Create a socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        perror("ERROR opening socket");
+        exit(1);
     }
+
+    // Define the server address
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(SERVER_PORT);
+    if (inet_pton(AF_INET, SERVER_IP, &serv_addr.sin_addr) <= 0) {
+        fprintf(stderr, "ERROR invalid server IP address\n");
+        exit(1);
+    }
+
+    // Connect to the server
+    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("ERROR connecting");
+        exit(1);
+    }
+
+    // Prepare the HTTP GET request message
+    snprintf(sendbuffer, sizeof(sendbuffer), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
+
+    // Send the GET request
+    n = write(sockfd, sendbuffer, strlen(sendbuffer));
+    if (n < 0) {
+        perror("ERROR writing to socket");
+        exit(1);
+    }
+
+    // Read the server's response
+    memset(recvbuffer, 0, BUFFER_SIZE);
+    n = read(sockfd, recvbuffer, BUFFER_SIZE - 1);
+    if (n < 0) {
+        perror("ERROR reading from socket");
+        exit(1);
+    }
+
+    // Print the server's response
+    printf("Server response: %s\n", recvbuffer);
+
+    // Optionally, send data to Arduino
+    send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
+
+    // Close the socket
+    close(sockfd);
+
     return 0;
 }
