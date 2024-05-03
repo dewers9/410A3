@@ -9,7 +9,7 @@
 #include <termios.h>
 
 #define SERVER_IP "127.0.0.1"  // Server IP address
-#define SERVER_PORT 8080        // Server port number as per your server configuration
+#define SERVER_PORT 5050        // Server port number as per your server configuration
 #define BUFFER_SIZE 1024        // Size of the buffer for incoming data
 
 // Function to send data to Arduino via serial port
@@ -60,7 +60,8 @@ int send_to_arduino(const char *portname, const char *data) {
 }
 
 int main() {
-    int sockfd;
+    printf("Starting client\n");
+    int sockfd, n;
     struct sockaddr_in serv_addr;
     char sendbuffer[BUFFER_SIZE];
     char recvbuffer[BUFFER_SIZE];
@@ -72,9 +73,13 @@ int main() {
         perror("ERROR opening socket");
         exit(1);
     }
+    else{
+        printf("Socket opened");
+    }
 
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
     serv_addr.sin_port = htons(SERVER_PORT);
     if (inet_pton(AF_INET, SERVER_IP, &serv_addr.sin_addr) <= 0) {
         fprintf(stderr, "ERROR invalid server IP address\n");
@@ -85,7 +90,7 @@ int main() {
         perror("ERROR connecting");
         exit(1);
     }
-
+    
     printf("Use '+' to request time for next timezone, '-' for previous timezone.\n");
 
     while(1) {
@@ -121,8 +126,8 @@ int main() {
         // Print the server's response
         printf("Server response: %s\n", recvbuffer);
 
-        send_to_arduino("/dev/ttyUSB0", recvbuffer);
-    }
+    // Optionally, send data to Arduino
+    //send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
 
     // Close the socket
     close(sockfd);
