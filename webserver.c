@@ -90,6 +90,13 @@ int main(int argc, char *argv[]) {
     int addrlen = sizeof(address);
     // Accept incoming connections
     while (1) {
+        char input = getchar();  // Read a single character
+        getchar();  // Consume the newline character
+
+        if (input == 'x') {
+            close(new_socket);
+            break;
+        }
         // APUE pg. 608:
         // We use the accept function to retrieve a connect request and convert it into a connection.
         printf("===== Web Server Waiting for Connection=====\n");
