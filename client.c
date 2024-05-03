@@ -90,7 +90,7 @@ int main() {
         perror("ERROR connecting");
         exit(1);
     }
-    
+
     printf("Use '+' to request time for next timezone, '-' for previous timezone.\n");
 
     while(1) {
@@ -132,4 +132,5 @@ int main() {
     // Close the socket
     close(sockfd);
     return 0;
+    }
 }
