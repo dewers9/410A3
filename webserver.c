@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include <time.h>
 
 // creating a webserver in C
 // that connects to a client browser
@@ -18,18 +19,31 @@
 // initialize a socket endpoint
 // for use by a server
 
-
-#define PORT 8080
 #define BUFFER_SIZE 1024
 
-int main() {
+int get_local_time(void){
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+    printf ( "Current local time and date: %s", asctime (timeinfo) );
+    return 0;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 0){
+        perror("No Port Specified");
+        exit(EXIT_FAILURE);
+    }
+
     printf("Web Server Started\n");
     // get fd and make a new socket
     int server_fd, new_socket;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     char buffer[BUFFER_SIZE] = {0};
-    char *response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html><body><h1>Hello, World!</h1></body></html>";
+    char *response = "sending response";
 
     // creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
@@ -37,9 +51,18 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    char* a = argv[1];
+    int port = atoi(a);
+
+    printf("port: %d\n", port);
+    if (port < 5000 || port > 65536){
+        perror("Invalid Port Number");
+        exit(EXIT_FAILURE);
+    }
+
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+    address.sin_port = htons(port);
 
     // Bind the socket to localhost and the specified port
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
