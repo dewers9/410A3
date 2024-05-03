@@ -9,7 +9,7 @@
 #include <termios.h>
 
 #define SERVER_IP "127.0.0.1"  // Server IP address
-#define SERVER_PORT 8080        // Server port number as per your server configuration
+#define SERVER_PORT 5050        // Server port number as per your server configuration
 #define BUFFER_SIZE 1024        // Size of the buffer for incoming data
 
 
@@ -68,6 +68,7 @@ int send_to_arduino(const char *portname, const char *data) {
 }
 
 int main() {
+    printf("Starting client\n");
     int sockfd, n;
     struct sockaddr_in serv_addr;
     char sendbuffer[BUFFER_SIZE];
@@ -79,10 +80,14 @@ int main() {
         perror("ERROR opening socket");
         exit(1);
     }
+    else{
+        printf("Socket opened");
+    }
 
     // Define the server address
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
     serv_addr.sin_port = htons(SERVER_PORT);
     if (inet_pton(AF_INET, SERVER_IP, &serv_addr.sin_addr) <= 0) {
         fprintf(stderr, "ERROR invalid server IP address\n");
@@ -94,6 +99,8 @@ int main() {
         perror("ERROR connecting");
         exit(1);
     }
+    else
+        printf("connected to the server..\n");
 
     // Prepare the HTTP GET request message
     snprintf(sendbuffer, sizeof(sendbuffer), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
@@ -117,7 +124,7 @@ int main() {
     printf("Server response: %s\n", recvbuffer);
 
     // Optionally, send data to Arduino
-    send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
+    //send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
 
     // Close the socket
     close(sockfd);
