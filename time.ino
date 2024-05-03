@@ -8,50 +8,44 @@ int s = 0;
 void setup() {
   Serial.begin(9600); // Start serial communication
   lcd.begin(16, 2);
-  
-  // Receive initial time from serial input
-  while (!Serial.available()) {}
-  h = Serial.parseInt();
-  while (Serial.read() != ':') {}
-  m = Serial.parseInt();
-  while (Serial.read() != ':') {}
-  s = Serial.parseInt();
+  lcd.setCursor(0, 0);
+  lcd.print("Time:");
 }
 
-void loop() {
-  s = s + 1;
-  delay(990);
-  if (s == 60) {
+void loop() {  
+  // Check if there is data to read
+  if (Serial.available() > 0) {
+    // Expecting time in format "hh:mm:ss"
+    h = Serial.parseInt();
+    while (Serial.read() != ':') {} // wait for the first colon
+    m = Serial.parseInt();
+    while (Serial.read() != ':') {} // wait for the second colon
+    s = Serial.parseInt();
+  }
+  
+  // Time update logic
+  s += 1;
+  delay(990); // Adjust this delay to keep accurate time
+  if (s >= 60) {
     s = 0;
-    m = m + 1;
-    if (m == 60) {
+    m += 1;
+    if (m >= 60) {
       m = 0;
-      h = h + 1;
-      if (h == 24) {
+      h += 1;
+      if (h >= 24) {
         h = 0;
       }
     }
   }
 
-  lcd.setCursor(0, 0);
-  lcd.print("Time:");
+  // Update LCD display
   lcd.setCursor(6, 0);
-  if (h < 10) {
-    lcd.print("0");
-  }
+  if (h < 10) lcd.print('0'); // Add leading zero for hours
   lcd.print(h);
-  lcd.setCursor(8, 0);
-  lcd.print(":");
-  lcd.setCursor(9, 0);
-  if (m < 10) {
-    lcd.print("0");
-  }
+  lcd.print(':');
+  if (m < 10) lcd.print('0'); // Add leading zero for minutes
   lcd.print(m);
-  lcd.setCursor(11, 0);
-  lcd.print(":");
-  lcd.setCursor(12, 0);
-  if (s < 10) {
-    lcd.print("0");
-  }
+  lcd.print(':');
+  if (s < 10) lcd.print('0'); // Add leading zero for seconds
   lcd.print(s);
 }

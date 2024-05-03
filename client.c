@@ -61,12 +61,12 @@ int send_to_arduino(const char *portname, const char *data) {
 
 int main() {
     printf("Starting client\n");
-    int sockfd, n;
+    int sockfd;
     struct sockaddr_in serv_addr;
     char sendbuffer[BUFFER_SIZE];
     char recvbuffer[BUFFER_SIZE];
-    int current_timezone = 0;  // Default timezone offset
-    char input;
+    char input[1024];  // Define a buffer to hold the input line
+    char time_buf[1024];  // Define a buffer to hold the input line
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
@@ -91,27 +91,32 @@ int main() {
         exit(1);
     }
 
-    printf("Use '+' to request time for next timezone, '-' for previous timezone.\n");
-
     while(1) {
-        printf("Enter command (+/-): ");
-        input = getchar();  // Read a single character
-        getchar();  // Consume the newline character
 
-        if (input == '+') {
-            current_timezone++;
-        } else if (input == '-') {
-            current_timezone--;
+        printf("Enter timezone Code: ");
+        if (fgets(input, sizeof(input), stdin)) {  // Read line from stdin
+            printf("You entered: %s", input);
         } else {
-            printf("Invalid input. Use '+' or '-'.\n");
-            continue;
+            printf("Error reading input.\n");
         }
 
+        if (input[0] == 'q'){
+            break;
+        }
+
+        int int_of_code = atoi(input);
+
+        if (int_of_code < 0 || int_of_code > 25){
+            printf("ERROR Invalid Timezone code");
+            perror("ERROR Invalid Timezone code");
+            exit(1);
+        }
         // Format the HTTP GET request with the current timezone
-        snprintf(sendbuffer, sizeof(sendbuffer), "GET /time?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", current_timezone, SERVER_IP);
+        snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code, SERVER_IP);
 
         // Send the GET request
         if (write(sockfd, sendbuffer, strlen(sendbuffer)) < 0) {
+            printf("ERROR writing to socket");
             perror("ERROR writing to socket");
             exit(1);
         }
@@ -119,6 +124,7 @@ int main() {
         // Read the server's response
         memset(recvbuffer, 0, BUFFER_SIZE);
         if (read(sockfd, recvbuffer, BUFFER_SIZE - 1) < 0) {
+            printf("ERROR reading from socket");
             perror("ERROR reading from socket");
             exit(1);
         }
@@ -126,11 +132,18 @@ int main() {
         // Print the server's response
         printf("Server response: %s\n", recvbuffer);
 
-    // Optionally, send data to Arduino
-    //send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
+        sprintf(time_buf,"%d:00:00",int_of_code);
+        
+        // Optionally, send data to Arduino
+        send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
 
+
+        input[0] = '\0';
+        time_buf[0] = '\0';
+        sendbuffer[0] = '\0';
+        recvbuffer[0] = '\0';
+    }
     // Close the socket
     close(sockfd);
     return 0;
-    }
 }
