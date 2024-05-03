@@ -12,14 +12,6 @@
 #define SERVER_PORT 8080        // Server port number as per your server configuration
 #define BUFFER_SIZE 1024        // Size of the buffer for incoming data
 
-
-// Function to write data received from the server to a buffer
-static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
-    ((char *)userp)[0] = '\0'; // Initializing the buffer
-    strncat(userp, contents, size * nmemb);
-    return size * nmemb;
-}
-
 // Function to send data to Arduino via serial port
 int send_to_arduino(const char *portname, const char *data) {
     int fd;
@@ -68,19 +60,19 @@ int send_to_arduino(const char *portname, const char *data) {
 }
 
 int main() {
-    int sockfd, n;
+    int sockfd;
     struct sockaddr_in serv_addr;
     char sendbuffer[BUFFER_SIZE];
     char recvbuffer[BUFFER_SIZE];
+    int current_timezone = 0;  // Default timezone offset
+    char input;
 
-    // Create a socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         perror("ERROR opening socket");
         exit(1);
     }
 
-    // Define the server address
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(SERVER_PORT);
@@ -89,38 +81,50 @@ int main() {
         exit(1);
     }
 
-    // Connect to the server
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("ERROR connecting");
         exit(1);
     }
 
-    // Prepare the HTTP GET request message
-    snprintf(sendbuffer, sizeof(sendbuffer), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
+    printf("Use '+' to request time for next timezone, '-' for previous timezone.\n");
 
-    // Send the GET request
-    n = write(sockfd, sendbuffer, strlen(sendbuffer));
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
+    while(1) {
+        printf("Enter command (+/-): ");
+        input = getchar();  // Read a single character
+        getchar();  // Consume the newline character
+
+        if (input == '+') {
+            current_timezone++;
+        } else if (input == '-') {
+            current_timezone--;
+        } else {
+            printf("Invalid input. Use '+' or '-'.\n");
+            continue;
+        }
+
+        // Format the HTTP GET request with the current timezone
+        snprintf(sendbuffer, sizeof(sendbuffer), "GET /time?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", current_timezone, SERVER_IP);
+
+        // Send the GET request
+        if (write(sockfd, sendbuffer, strlen(sendbuffer)) < 0) {
+            perror("ERROR writing to socket");
+            exit(1);
+        }
+
+        // Read the server's response
+        memset(recvbuffer, 0, BUFFER_SIZE);
+        if (read(sockfd, recvbuffer, BUFFER_SIZE - 1) < 0) {
+            perror("ERROR reading from socket");
+            exit(1);
+        }
+
+        // Print the server's response
+        printf("Server response: %s\n", recvbuffer);
+
+        send_to_arduino("/dev/ttyUSB0", recvbuffer);
     }
-
-    // Read the server's response
-    memset(recvbuffer, 0, BUFFER_SIZE);
-    n = read(sockfd, recvbuffer, BUFFER_SIZE - 1);
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    // Print the server's response
-    printf("Server response: %s\n", recvbuffer);
-
-    // Optionally, send data to Arduino
-    send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
 
     // Close the socket
     close(sockfd);
-
     return 0;
 }
