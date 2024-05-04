@@ -32,7 +32,7 @@ int get_local_time(void){
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 0){
+    if (argc < 1){
         perror("No Port Specified");
         exit(EXIT_FAILURE);
     }

@@ -59,7 +59,17 @@ int send_to_arduino(const char *portname, const char *data) {
     return 0;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    int port = 5050;
+
+    if (argc < 1){
+        perror("No Port Specified");
+        exit(EXIT_FAILURE);
+    }
+
+    char* a = argv[1];
+    port = atoi(a);
+    
     printf("Starting client\n");
     int sockfd;
     struct sockaddr_in serv_addr;
@@ -80,7 +90,7 @@ int main() {
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
-    serv_addr.sin_port = htons(SERVER_PORT);
+    serv_addr.sin_port = htons(port);
     if (inet_pton(AF_INET, SERVER_IP, &serv_addr.sin_addr) <= 0) {
         fprintf(stderr, "ERROR invalid server IP address\n");
         exit(1);
@@ -99,8 +109,13 @@ int main() {
         } else {
             printf("Error reading input.\n");
         }
+        fflush(stdin);
 
         if (input[0] == 'q'){
+            break;
+        }
+
+        if (input[0] == 'f'){
             break;
         }
 
@@ -138,10 +153,10 @@ int main() {
         send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
 
 
-        input[0] = '\0';
-        time_buf[0] = '\0';
-        sendbuffer[0] = '\0';
-        recvbuffer[0] = '\0';
+        // input[0] = '\0';
+        // time_buf[0] = '\0';
+        // sendbuffer[0] = '\0';
+        // recvbuffer[0] = '\0';
     }
     // Close the socket
     close(sockfd);
