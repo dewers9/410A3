@@ -86,7 +86,11 @@ int main(int argc, char *argv[]) {
     }
 
     char buffer[BUFFER_SIZE];
-    char *response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html><body><h1>Hello, World!</h1></body></html>";
+    char *response_string = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html><body><h1>Hello, World!</h1></body></html>";
+    char *response = malloc(strlen(response_string) + 1);
+    char *request = NULL;
+    strcpy(response, response_string);
+    
     int addrlen = sizeof(address);
     // Accept incoming connections
     while (1) {
@@ -100,15 +104,143 @@ int main(int argc, char *argv[]) {
 
         // Read the incoming request
         read(new_socket, buffer, BUFFER_SIZE);
-        printf("%s\n", buffer);
+        
+        char *token;
+        printf("HTTP Part: %s\n", buffer);
+        fflush(stdout);
+        token = strtok(buffer,"\n");
+        token += 5;
+        token = strtok(token, " ");
+       
+        char* request_new = realloc(request, strlen(token) + 1);
+        if (request_new == NULL){
+            printf("Memory allocation failed!\n");
+            return 1; // Return an error code
+        }
+        
+        strcpy(request_new, token);
+        request = request_new;
+        
+        token = strtok(token, ".");
+        token = strtok(NULL, ".");
+        
+    
+        printf("Response is %s\n", request);
+        fflush(stdout);
+        printf("Arrive at extension %s\n", token);
+        fflush(stdout);
 
+        char *extension = NULL;
+        if(token){
+            extension = malloc(strlen(token) + 1);
+            strcpy(extension, token);
+        }
+        // Stop further processing
+    
+        
+        
+        //
+        //GOT
+        //TOKEN
+        //SENDING RESPONSES
+        
+        
+        FILE *file;
+        if (extension){
+            printf("Arrive at Extension\n");
+            fflush(stdout);
+            if (strcmp(extension, "html") == 0){
+                file = fopen(request, "r");
+                if (file == NULL) {
+                    perror("Error opening file");
+                    char *not_found = "<html><body><h1>404 Not Found</h1></body></html>";
+                    char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+                    send(new_socket, http_response, strlen(http_response), 0);
+                    send(new_socket , not_found, strlen(not_found), 0);
+                
+                }   
+            //read contents into buffer
+                char html_buffer[1024];
+                fread(html_buffer, sizeof(char), sizeof(html_buffer), file);
+                //send html headers then the content
+                char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+                send(new_socket, http_response, strlen(http_response), 0);
+                send(new_socket , html_buffer, strlen(html_buffer), 0);
+                fclose(file);
+            }else if(strcmp("gif", extension) == 0 || strcmp("jpeg", extension) == 0 || strcmp("jpg", extension) == 0){
+                size_t bytes_read;
+                char image_buffer[1024];
+                
+                file = fopen(request, "rb");
+
+                if (!file) {
+                    perror("Error opening image file");
+                    return 1;
+                }
+                //headers
+                
+                char http_response[1024];
+                
+                snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\nContent-Type: image/%s\n\n", extension );
+                
+                printf("Arrive at Image %s\n", http_response);
+                fflush(stdout);
+                send(new_socket, http_response, strlen(http_response), 0);
+                
+                while ((bytes_read = fread(image_buffer, 1, sizeof(image_buffer), file)) > 0) {\
+                    
+                    
+                    send(new_socket, image_buffer, bytes_read, 0);
+                }
+            fclose(file);
+            }
+            
+        }else{
+            if(strcmp("directory", request) == 0){
+                printf("Arrive at Directory\n");
+                fflush(stdout);
+                DIR *directory;
+                struct dirent *entry;
+                directory = opendir("/mnt/c/Users/ricky/Desktop/Final_Project");
+                if (directory == NULL) {
+                    perror("Error opening directory");
+                
+                }
+
+                // Read directory entries
+                char dir_contents[1024];
+                while ((entry = readdir(directory)) != NULL) {
+                    strcat(dir_contents, entry->d_name);
+                    strcat(dir_contents, "\n");
+                }
+                
+                
+                
+                char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+                send(new_socket, http_response, strlen(http_response), 0);
+                // Close the directory
+                char html[2048] = {0};
+                
+                sprintf(html,"<html>\n<head>\n<title>Directory Listing</title>\n</head>\n<body>\n%s\n</body>\n</html>", dir_contents);
+                send(new_socket, html, strlen(html), 0);
+                closedir(directory);
+                
+            }
+        }
         // Send response
         // write(new_socket, response, strlen(response));
         // close(new_socket);
-
+        
         // Send the response
-        send(new_socket, response, strlen(response), 0);
+        //send(new_socket, response, strlen(response), 0);
+        
         close(new_socket);
+        
+            
+        
+
+        
+        
     }
 
     return 0;

@@ -9,7 +9,7 @@
 #include <termios.h>
 
 #define SERVER_IP "127.0.0.1"  // Server IP address
-#define SERVER_PORT 8080        // Server port number as per your server configuration
+#define SERVER_PORT 5050     // Server port number as per your server configuration
 #define BUFFER_SIZE 1024        // Size of the buffer for incoming data
 
 
@@ -117,7 +117,7 @@ int main() {
     printf("Server response: %s\n", recvbuffer);
 
     // Optionally, send data to Arduino
-    send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
+    //send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
 
     // Close the socket
     close(sockfd);
