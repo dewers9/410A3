@@ -29,7 +29,6 @@ print(numbers)
 plt.bar(file_types, numbers)
 plt.xlabel('File Types')
 plt.ylabel('Frequency')
-plt.title('Frequency of File Types')
-
+plt.title('Frequency of File Typesssssss')
 plt.show()
 plt.savefig("my-histogram.jpg")
