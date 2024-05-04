@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
                     char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
                     send(new_socket, http_response, strlen(http_response), 0);
                     char html[2048] = {0};
-                    sprintf(html,"<html>\n<head style=\"display: block;\">\n<title>Script Output</title>\n</head>\n<body>\n%s\n</body>\n</html>", buffer);
+                    sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Script Output</title>\n</head>\n<body>\n<h1>Script Output</h1>\n<p>%s</p>\n</body>\n</html>", buffer);
                     send(new_socket, html, strlen(html), 0);
                     close(pipefd[0]);  // Close reading end of pipe
                 }
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
                 // Close the directory
                 char html[2048] = {0};
                 
-                sprintf(html,"<html>\n<head>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>%s</h1\n</body>\n</html>", dir_contents);
+                sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>Directory Listing</p>\n<h5>%s</p\n</body>\n</html>", dir_contents);
                 send(new_socket, html, strlen(html), 0);
                 closedir(directory);
                 
