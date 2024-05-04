@@ -40,14 +40,24 @@ int main(int argc, char *argv[]){
     if (ntot == 0)
     ntot = 1; /* avoid divide by 0; print 0 for all counts */
     
-    printf("%d %d %d %d %d %d %d", nreg, ndir, nblk, nchr, nfifo, nslink, nsock);
+    //printf("%d %d %d %d %d %d %d", nreg, ndir, nblk, nchr, nfifo, nslink, nsock);
     
-    FILE * plotPipe = popen("./my-histogram.py", "w");
-    // FILE * plotPipe;
-
-    if (!plotPipe) {
+    FILE * plotPipe;
+    
+    if ((plotPipe = popen("./my-histogram.py", "w")) == 0){
         fprintf(stderr, "Error opening plot pipe\n");
         return 1;
+    }
+
+    /* Write to the pipe */
+    fprintf(plotPipe, "%d %d %d %d %d %d %d", nreg, ndir, nblk, nchr, nfifo, nslink, nsock);
+    // make sure that the above string gets flushed to stdout
+    fflush(plotPipe);
+    
+    /* Close the pipe */
+    if (pclose(plotPipe) != 0) {
+        fprintf(stderr, "Error closing pipe\n");
+        exit(EXIT_FAILURE);
     }
 
     exit(ret);
