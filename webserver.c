@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <time.h>
+#include <sys/wait.h>
 
 // creating a webserver in C
 // that connects to a client browser
@@ -32,7 +33,7 @@ int get_local_time(void){
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 0){
+    if (argc < 1){
         perror("No Port Specified");
         exit(EXIT_FAILURE);
     }
@@ -101,6 +102,21 @@ int main(int argc, char *argv[]) {
         // Read the incoming request
         read(new_socket, buffer, BUFFER_SIZE);
         printf("%s\n", buffer);
+
+        //pid_t pid = fork();
+        // if(pid_t < 0){
+        //     perror("failed to fork");
+        //     exit(1);
+        // }
+        // else if (pid_t == 0){
+            if(strstr(buffer, "text/html") == 0){
+                printf("Client request received\n");
+                system("ls -l -a");
+            }
+        // }
+        // else{
+        //     waitpid(pid_t);
+        // }
 
         // Send response
         // write(new_socket, response, strlen(response));
