@@ -104,14 +104,18 @@ int main(int argc, char *argv[]) {
 
         // Read the incoming request
         read(new_socket, buffer, BUFFER_SIZE);
-        
+        //first check if arguments, get those, then get extension
         char *token;
         printf("HTTP Part: %s\n", buffer);
         fflush(stdout);
+        char *args = NULL;
         token = strtok(buffer,"\n");
         token += 5;
         token = strtok(token, " ");
-       
+        if(strchr(token,'?') != NULL){
+            token = strtok(token, "?");
+            args = strtok(NULL, " ");
+        }
         char* request_new = realloc(request, strlen(token) + 1);
         if (request_new == NULL){
             printf("Memory allocation failed!\n");
@@ -125,18 +129,19 @@ int main(int argc, char *argv[]) {
         token = strtok(NULL, ".");
         
     
-        printf("Response is %s\n", request);
-        fflush(stdout);
-        printf("Arrive at extension %s\n", token);
-        fflush(stdout);
-
+        
         char *extension = NULL;
         if(token){
             extension = malloc(strlen(token) + 1);
             strcpy(extension, token);
         }
         // Stop further processing
-    
+        printf("Request is %s\n", request);
+        fflush(stdout);
+        printf("Extension %s\n", extension);
+        printf("Arguments %s\n", args);
+        fflush(stdout);
+
         
         
         //
@@ -193,6 +198,52 @@ int main(int argc, char *argv[]) {
                     send(new_socket, image_buffer, bytes_read, 0);
                 }
             fclose(file);
+            }else if(strcmp("cgi", extension) == 0){
+               
+                int pipefd[2];
+                pid_t pid;
+
+                // Create a pipe
+                if (pipe(pipefd) == -1) {
+                    perror("pipe");
+                    exit(EXIT_FAILURE);
+                }
+                pid = fork();
+                if (pid == -1) {
+                    perror("fork");
+                    exit(EXIT_FAILURE);
+                } else if (pid == 0) {
+                    // Child process
+                    close(pipefd[0]);  // Close reading end of pipe
+                    // Write data to the pipe
+                    dup2(pipefd[1], STDOUT_FILENO);
+                    char *args[] = { request, NULL };
+                    char cur_dir[100] = "/mnt/c/Users/ricky/Desktop/Final_Project/";
+                    strcat(cur_dir, request);
+                
+                    if (execvp(cur_dir, args) == -1) {
+                        perror("execvp failed");
+                        return 1;
+                    }
+
+                    close(pipefd[1]);  // Close writing end of pipe
+                    exit(EXIT_SUCCESS);
+                } else {
+                    // Parent process
+                    close(pipefd[1]);  // Close writing end of pipe
+                    char buffer[1024];
+                    // Read data from the pipe
+                    read(pipefd[0], buffer, sizeof(buffer));
+                    printf("Received message from child: %s\n", buffer);
+                    char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+                    send(new_socket, http_response, strlen(http_response), 0);
+                    char html[2048] = {0};
+                    sprintf(html,"<html>\n<head style=\"display: block;\">\n<title>Script Output</title>\n</head>\n<body>\n%s\n</body>\n</html>", buffer);
+                    send(new_socket, html, strlen(html), 0);
+                    close(pipefd[0]);  // Close reading end of pipe
+                }
+
+                
             }
             
         }else{
@@ -221,7 +272,7 @@ int main(int argc, char *argv[]) {
                 // Close the directory
                 char html[2048] = {0};
                 
-                sprintf(html,"<html>\n<head>\n<title>Directory Listing</title>\n</head>\n<body>\n%s\n</body>\n</html>", dir_contents);
+                sprintf(html,"<html>\n<head>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>%s</h1\n</body>\n</html>", dir_contents);
                 send(new_socket, html, strlen(html), 0);
                 closedir(directory);
                 
