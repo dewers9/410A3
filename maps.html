@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Timezone Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-timedimension/dist/leaflet.timedimension.src.js"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([20, 0], 2); // Initialize map with a global view
+
+        // Add CartoDB Positron tiles:
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: 'Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.'
+        }).addTo(map);
+
+        // Fetch and add time zone data layer
+        fetch('https://cdn.jsdelivr.net/npm/leaflet-timedimension/examples/json/timezones.geojson')
+            .then(response => response.json())
+            .then(data => {
+                // Define style for the timezones
+                const timezoneStyle = {
+                    color: '#222',
+                    weight: 2,
+                    fillColor: '#888',
+                    fillOpacity: 0.2
+                };
+
+                // Define hover style for the timezones
+                const hoverStyle = {
+                    color: '#222',
+                    weight: 2,
+                    fillColor: '#aaa',
+                    fillOpacity: 0.5
+                };
+
+                // Function to handle events on each timezone
+                function onEachFeature(feature, layer) {
+                    layer.on({
+                        mouseover: function (e) {
+                            e.target.setStyle(hoverStyle);
+                        },
+                        mouseout: function (e) {
+                            e.target.setStyle(timezoneStyle);
+                        },
+                        click: function (e) {
+                            alert('Timezone: ' + feature.properties.tzid);
+                        }
+                    });
+                }
+
+                // Create geoJSON layer for the timezones
+                L.geoJSON(data, {
+                    style: timezoneStyle,
+                    onEachFeature: onEachFeature
+                }).addTo(map);
+            });
+
+    </script>
+</body>
+</html>
