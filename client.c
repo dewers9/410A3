@@ -97,17 +97,17 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("ERROR connecting");
-        exit(1);
-    }
-
     while(1) {
         
+        if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+            perror("ERROR connecting");
+            exit(1);
+        }
+
         char fileName[256]; // Buffer to store the filename
         int int_of_code;
 
-        printf("\nEnter timezone Code: ");
+        printf("\nEnter timezone Code or command: ");
         if (fgets(input, sizeof(input), stdin)) {  // Read line from stdin
             printf("You entered: %s", input);
         } else {
@@ -161,10 +161,8 @@ int main(int argc, char *argv[]) {
         // Send the GET request
         if (write(sockfd, sendbuffer, strlen(sendbuffer)) < 0) {
             perror("ERROR writing to socket");
-            // exit(1);
-        } else {
-            printf("Just wrote\n");
-        }
+            exit(1);
+        } 
 
         // Read the server's response
         memset(recvbuffer, 0, BUFFER_SIZE);
@@ -175,8 +173,11 @@ int main(int argc, char *argv[]) {
 
         // Print the server's response
         printf("\nServer response: %s\n", recvbuffer);
+
+        close(sockfd);
+        sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
     }
     // Close the socket
-    close(sockfd);
     return 0;
 }
