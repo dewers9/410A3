@@ -102,8 +102,11 @@ int main(int argc, char *argv[]) {
     }
 
     while(1) {
+        
+        char fileName[256]; // Buffer to store the filename
+        int int_of_code;
 
-        printf("Enter timezone Code: ");
+        printf("\nEnter timezone Code: ");
         if (fgets(input, sizeof(input), stdin)) {  // Read line from stdin
             printf("You entered: %s", input);
         } else {
@@ -111,27 +114,43 @@ int main(int argc, char *argv[]) {
         }
         fflush(stdin);
 
+        // Remove the newline character if present
+        input[strcspn(input, "\n")] = 0;
+
+
         if (input[0] == 'q'){
             break;
         }
+       
+        // Check if the input starts with "file"
+        if (strncmp(input, "file", strlen("file")) == 0) {
+            // Extract the filename
+            // Assuming the format "file filename", we skip the first 5 characters and any subsequent spaces
+            sscanf(input + strlen("file"), " %255[^\n]", fileName); // Skip the keyword and any spaces after it
+            
+            // Output the extracted filename and activate specific control flow
+            printf("Filename extracted: '%s'\n", fileName);
+            // Here you would add your specific control flow for handling the file
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
 
-        if (input[0] == 'f'){
-            break;
+        } else {
+            int_of_code = atoi(input);
+            if (int_of_code < 0 || int_of_code > 25){
+                perror("ERROR Invalid Timezone code");
+                exit(1);
+            }
+            // Format the HTTP GET request with the current timezone
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code, SERVER_IP);
+
+            sprintf(time_buf,"%d:00:00",int_of_code);
+            printf("%d:00:00",int_of_code);
+            
+            // Optionally, send data to Arduino
+            send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
         }
-
-        int int_of_code = atoi(input);
-
-        if (int_of_code < 0 || int_of_code > 25){
-            printf("ERROR Invalid Timezone code");
-            perror("ERROR Invalid Timezone code");
-            exit(1);
-        }
-        // Format the HTTP GET request with the current timezone
-        snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code, SERVER_IP);
 
         // Send the GET request
         if (write(sockfd, sendbuffer, strlen(sendbuffer)) < 0) {
-            printf("ERROR writing to socket");
             perror("ERROR writing to socket");
             exit(1);
         }
@@ -139,7 +158,6 @@ int main(int argc, char *argv[]) {
         // Read the server's response
         memset(recvbuffer, 0, BUFFER_SIZE);
         if (read(sockfd, recvbuffer, BUFFER_SIZE - 1) < 0) {
-            printf("ERROR reading from socket");
             perror("ERROR reading from socket");
             exit(1);
         }
@@ -147,11 +165,7 @@ int main(int argc, char *argv[]) {
         // Print the server's response
         printf("Server response: %s\n", recvbuffer);
 
-        sprintf(time_buf,"%d:00:00",int_of_code);
         
-        // Optionally, send data to Arduino
-        send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
-
 
         // input[0] = '\0';
         // time_buf[0] = '\0';
