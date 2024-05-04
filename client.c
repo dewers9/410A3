@@ -14,6 +14,8 @@
 
 // Function to send data to Arduino via serial port
 int send_to_arduino(const char *portname, const char *data) {
+    printf("\nWriting to Arduino\n");
+
     int fd;
     struct termios tty;
 
@@ -55,6 +57,8 @@ int send_to_arduino(const char *portname, const char *data) {
 
     write(fd, data, strlen(data)); // Send data
 
+    printf("\nFinished Arduino\n");
+
     close(fd);
     return 0;
 }
@@ -80,8 +84,9 @@ int main(int argc, char *argv[]) {
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
+        printf("ERROR opening socket");
         perror("ERROR opening socket");
-        exit(1);
+        // exit(1);
     }
     else{
         printf("Socket opened");
@@ -120,10 +125,7 @@ int main(int argc, char *argv[]) {
 
         if (input[0] == 'q'){
             break;
-        }
-       
-        // Check if the input starts with "file"
-        if (strncmp(input, "file", strlen("file")) == 0) {
+        } else if (strncmp(input, "file", strlen("file")) == 0) {
             // Extract the filename
             // Assuming the format "file filename", we skip the first 5 characters and any subsequent spaces
             sscanf(input + strlen("file"), " %255[^\n]", fileName); // Skip the keyword and any spaces after it
@@ -133,6 +135,15 @@ int main(int argc, char *argv[]) {
             // Here you would add your specific control flow for handling the file
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
 
+        } else if (strncmp(input, "run", strlen("run")) == 0) {
+            // Extract the filename
+            // Assuming the format "file filename", we skip the first 5 characters and any subsequent spaces
+            sscanf(input + strlen("run"), " %255[^\n]", fileName); // Skip the keyword and any spaces after it
+            
+            // Output the extracted filename and activate specific control flow
+            printf("Filename extracted: '%s'\n", fileName);
+            // Here you would add your specific control flow for handling the file
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?run=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
         } else {
             int_of_code = atoi(input);
             if (int_of_code < 0 || int_of_code > 25){
@@ -150,27 +161,27 @@ int main(int argc, char *argv[]) {
         }
 
         // Send the GET request
+        printf("about to write\n");
         if (write(sockfd, sendbuffer, strlen(sendbuffer)) < 0) {
+            printf("ERROR writing to socket");
             perror("ERROR writing to socket");
-            exit(1);
+            // exit(1);
+        } else {
+            printf("Just wrote\n");
         }
 
         // Read the server's response
+        printf("about to read\n");
         memset(recvbuffer, 0, BUFFER_SIZE);
         if (read(sockfd, recvbuffer, BUFFER_SIZE - 1) < 0) {
+            printf("ERROR reading from socket");
             perror("ERROR reading from socket");
             exit(1);
         }
+        printf("Just read\n");
 
         // Print the server's response
-        printf("Server response: %s\n", recvbuffer);
-
-        
-
-        // input[0] = '\0';
-        // time_buf[0] = '\0';
-        // sendbuffer[0] = '\0';
-        // recvbuffer[0] = '\0';
+        printf("\nServer response: %s\n", recvbuffer);
     }
     // Close the socket
     close(sockfd);
