@@ -25,12 +25,15 @@ int send_to_arduino(const char *portname, const char *data) {
         return -1;
     }
 
+
     memset(&tty, 0, sizeof tty);
     if (tcgetattr(fd, &tty) != 0) {
         perror("Error from tcgetattr");
         close(fd);
         return -1;
     }
+
+
 
     cfsetospeed(&tty, B9600); // Set baud rate
     cfsetispeed(&tty, B9600);
@@ -86,7 +89,7 @@ int main(int argc, char *argv[]) {
         // exit(1);
     }
     else{
-        printf("Socket opened");
+        printf("Socket opened\n");
     }
 
     memset(&serv_addr, 0, sizeof(serv_addr));
