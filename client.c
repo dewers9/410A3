@@ -200,7 +200,6 @@ int main(int argc, char *argv[]) {
             snprintf(time_buf, sizeof(time_buf), "%02d:%02d:%02d", hours, minutes, seconds);
 
             send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
-            send = 0;
 
             close(sockfd);
             sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -210,10 +209,13 @@ int main(int argc, char *argv[]) {
             }
 
             char html[2048] = {0};
-            sprintf(html,"PUT /reciept?zone=None HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n<head>\n<title>Client Response</title>\n</head>\n<body>\n<h1>Client Response</p>\n<h5>TIME RECIEVED=%s</p\n</body>\n</html> HTTP/1.1\r\nHost: %s\r\n\r\n", time_buf,SERVER_IP);
+            sprintf(html,"PUT /reciept?zone=None HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n<head>\n<title>Client Response</title>\n</head>\n<body>\n<h1>Client Response</p>\n<h5>TIME SET@%s</p\n</body>\n</html> HTTP/1.1\r\nHost: %s\r\n\r\n", time_buf,SERVER_IP);
             // snprintf(html, sizeof(html), "GET /request?zone=Etc/GMT:%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code - 13, SERVER_IP);
 
             write(sockfd, html, strlen(html));
+
+            send = 0;
+
         }
 
         close(sockfd);
