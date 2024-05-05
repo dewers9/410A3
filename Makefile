@@ -1,17 +1,16 @@
 CC=gcc
 CFLAGS=-Wall -g
-LIBS=-lcurl  # Add additional libraries needed, for example, -lm for math library if required
 
 # Default target
 all: webserver client
 
 # Compile the webserver executable
 webserver: webserver.o
-	$(CC) $(CFLAGS) -o webserver webserver.o $(LIBS)
+	$(CC) $(CFLAGS) -o webserver webserver.o 
 
 # Compile the client executable
 client: client.o
-	$(CC) $(CFLAGS) -o client client.o $(LIBS)
+	$(CC) $(CFLAGS) -o client client.o
 
 # Generic rule for compiling any source file to an object file
 %.o: %.c

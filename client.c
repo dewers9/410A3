@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <termios.h>
 
-#define SERVER_IP "127.0.0.1"  // Server IP address
+#define SERVER_IP "192.168.64.2"  // Server IP address
 #define SERVER_PORT 5050        // Server port number as per your server configuration
 #define SERVER_PORT 5050     // Server port number as per your server configuration
 #define BUFFER_SIZE 1024        // Size of the buffer for incoming data
@@ -32,8 +32,6 @@ int send_to_arduino(const char *portname, const char *data) {
         close(fd);
         return -1;
     }
-
-
 
     cfsetospeed(&tty, B9600); // Set baud rate
     cfsetispeed(&tty, B9600);
@@ -65,6 +63,7 @@ int send_to_arduino(const char *portname, const char *data) {
 }
 
 int main(int argc, char *argv[]) {
+
     int port = 5050;
 
     if (argc < 1){
@@ -76,7 +75,8 @@ int main(int argc, char *argv[]) {
     port = atoi(a);
     
     printf("Starting client\n");
-    int sockfd;
+    int sockfd, send =0;
+    int hours, minutes, seconds;
     struct sockaddr_in serv_addr;
     char sendbuffer[BUFFER_SIZE];
     char recvbuffer[BUFFER_SIZE];
@@ -100,21 +100,21 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "ERROR invalid server IP address\n");
         exit(1);
     }
-    while (1){
-      if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("ERROR connecting");
-        exit(1);
-      }
-      else
-        printf("connected to the server...\n");
-      
-      char fileName[256]; // Buffer to store the filename
-      int int_of_code;
-      
-      printf("\nEnter timezone Code: ");
-      if (fgets(input, sizeof(input), stdin)) {  // Read line from stdin
-        printf("You entered: %s", input);
-      } else {
+
+    while(1) {
+        
+        if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+            perror("ERROR connecting");
+            exit(1);
+        }
+
+        char fileName[256]; // Buffer to store the filename
+        int int_of_code;
+
+        printf("\nEnter timezone Code or command: ");
+        if (fgets(input, sizeof(input), stdin)) {  // Read line from stdin
+            printf("You entered: %s", input);
+        } else {
             printf("Error reading input.\n");
         }
         fflush(stdin);
@@ -124,7 +124,8 @@ int main(int argc, char *argv[]) {
 
 
         if (input[0] == 'q'){
-            break;
+            close(sockfd);
+            return 0;
         } else if (strncmp(input, "file", strlen("file")) == 0) {
             // Extract the filename
             // Assuming the format "file filename", we skip the first 5 characters and any subsequent spaces
@@ -143,32 +144,30 @@ int main(int argc, char *argv[]) {
             // Output the extracted filename and activate specific control flow
             printf("Filename extracted: '%s'\n", fileName);
             // Here you would add your specific control flow for handling the file
-            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?run=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
         } else if (strncmp(input, "ls", strlen("ls")) == 0) {
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?ls=TRUE HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
         } else {
             int_of_code = atoi(input);
-            if (int_of_code < 0 || int_of_code > 25){
+            if (int_of_code < 1 || int_of_code > 25){
                 perror("ERROR Invalid Timezone code");
                 exit(1);
             }
             // Format the HTTP GET request with the current timezone
-            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code, SERVER_IP);
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?zone=Etc/GMT:%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code - 13, SERVER_IP);
 
             sprintf(time_buf,"%d:00:00",int_of_code);
-            printf("%d:00:00",int_of_code);
+            // printf("%d:00:00",int_of_code);
             
-            // Optionally, send data to Arduino
-            send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
+            send = 1;
+
         }
 
         // Send the GET request
         if (write(sockfd, sendbuffer, strlen(sendbuffer)) < 0) {
             perror("ERROR writing to socket");
-            // exit(1);
-        } else {
-            printf("Just wrote\n");
-        }
+            exit(1);
+        } 
 
         // Read the server's response
         memset(recvbuffer, 0, BUFFER_SIZE);
@@ -179,12 +178,39 @@ int main(int argc, char *argv[]) {
 
         // Print the server's response
         printf("\nServer response: %s\n", recvbuffer);
+        if(send){
+            // Scan the input string for the time part
+            if (sscanf(recvbuffer, "%*s %*s %*d %8s %*d", time_buf) == 1) {
+                printf("Extracted time: %s\n", time_buf);
+            } else {
+                printf("Failed to extract time.\n");
+            }
+
+            sscanf(time_buf, "%d:%d:%d", &hours, &minutes, &seconds);
+            hours = (hours + int_of_code - 13) % 24;
+            seconds = (seconds + 3) % 60;
+            if (hours == 0){
+                hours = 12;
+            }
+            snprintf(time_buf, sizeof(time_buf), "%02d:%02d:%02d", hours, minutes, seconds);
+
+            send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
+            send = 0;
+
+            char html[2048] = {0};
+            sprintf(html,"HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n<head>\n\t<style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>Directory Listing</p>\n<h5>TIME RECIEVED=%s</p\n</body>\n</html>", time_buf);
+
+            write(sockfd, html, strlen(html));
+
+            printf("Wrote back to Server!\n\n%s\n",html);
+        }
+
         close(sockfd);
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
     }
     // Print the server's response
     printf("Server response: %s\n", recvbuffer);
-    
+
     // Optionally, send data to Arduino
     //send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
 
