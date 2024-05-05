@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
     strcpy(response, response_string);
     
     int addrlen = sizeof(address);
+    int status;
     // Accept incoming connections
     while (1) {
         // APUE pg. 608:
@@ -118,6 +119,13 @@ int main(int argc, char *argv[]) {
 
         // Read the incoming request
         read(new_socket, buffer, BUFFER_SIZE);
+
+        pid_t pid = fork();
+        if(pid < 0){
+          perror("failed to fork");
+          exit(1);
+        }
+        else if (pid == 0){
         //first check if arguments, get those, then get extension
         char *token;
         printf("HTTP Part: %s\n", buffer);
@@ -312,7 +320,21 @@ int main(int argc, char *argv[]) {
 
                 }
             }
+            else if(strcmp("dynamic", request) == 0){
+                // get a dynamic request
+                printf("HISTOGRAM FOR THIS DIRECTORY: %s\n",args);
+                fflush(stdout);
+                char *func = strtok(args, "=");
+                char *f_arg = strtok(NULL, " ");
+                system("./my-histogram ./");
+            }
+          }
+          exit(0);
         }
+        else{
+          waitpid(pid, &status, 0);
+        }
+            
         // Send response
         // write(new_socket, response, strlen(response));
         // close(new_socket);
