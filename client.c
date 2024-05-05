@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
             // Format the HTTP GET request with the current timezone
-            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code, SERVER_IP);
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /timezone?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code, SERVER_IP);
 
             sprintf(time_buf,"%d:00:00",int_of_code);
             printf("%d:00:00",int_of_code);
