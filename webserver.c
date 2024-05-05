@@ -230,7 +230,7 @@ int main(int argc, char *argv[]) {
             // Write data to the pipe
             dup2(pipefd[1], STDOUT_FILENO);
             char *args[] = { request, NULL };
-            char cur_dir[100] = "/mnt/c/Users/ricky/Desktop/Final_Project/";
+            char cur_dir[100] = "./";
             strcat(cur_dir, request);
             
             if (execvp(cur_dir, args) == -1) {

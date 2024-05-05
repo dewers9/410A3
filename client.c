@@ -130,7 +130,9 @@ int main(int argc, char *argv[]) {
             // Here you would add your specific control flow for handling the file
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
 
+            // set NOT to send to Arduino
             send = 0;
+            
         } else if (strncmp(input, "dynamic", strlen("dynamic")) == 0) {
             // Extract the filename
             // Assuming the format "file filename", we skip the first 5 characters and any subsequent spaces
@@ -141,11 +143,13 @@ int main(int argc, char *argv[]) {
             // Here you would add your specific control flow for handling the file
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /dynamic?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
 
+            // set NOT to send to Arduino
             send = 0;
 
         } else if (strncmp(input, "ls", strlen("ls")) == 0) {
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?ls=TRUE HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
 
+            // set NOT to send to Arduino
             send = 0;
 
         } else {
@@ -156,12 +160,9 @@ int main(int argc, char *argv[]) {
             }
             // Format the HTTP GET request with the current timezone
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?zone=Etc/GMT:%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code - 13, SERVER_IP);
-
-            sprintf(time_buf,"%d:00:00",int_of_code);
-            // printf("%d:00:00",int_of_code);
             
+            // set to send to Arduino
             send = 1;
-
         }
         if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
             perror("ERROR connecting");
@@ -189,6 +190,7 @@ int main(int argc, char *argv[]) {
                 printf("Extracted time: %s\n", time_buf);
             } else {
                 printf("Failed to extract time.\n");
+                continue;;
             }
 
             sscanf(time_buf, "%d:%d:%d", &hours, &minutes, &seconds);
