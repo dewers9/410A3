@@ -177,6 +177,8 @@ int main(int argc, char *argv[]) {
         close(sockfd);
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
     }
+    
     // Close the socket
+    close(sockfd);
     return 0;
 }
