@@ -100,26 +100,21 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "ERROR invalid server IP address\n");
         exit(1);
     }
-
-    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+    while (1){
+      if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("ERROR connecting");
         exit(1);
-    }
-<<<<<<< HEAD
-    else
+      }
+      else
         printf("connected to the server...\n");
-=======
->>>>>>> origin/ricky_dev
-
-    while(1) {
-        
-        char fileName[256]; // Buffer to store the filename
-        int int_of_code;
-
-        printf("\nEnter timezone Code: ");
-        if (fgets(input, sizeof(input), stdin)) {  // Read line from stdin
-            printf("You entered: %s", input);
-        } else {
+      
+      char fileName[256]; // Buffer to store the filename
+      int int_of_code;
+      
+      printf("\nEnter timezone Code: ");
+      if (fgets(input, sizeof(input), stdin)) {  // Read line from stdin
+        printf("You entered: %s", input);
+      } else {
             printf("Error reading input.\n");
         }
         fflush(stdin);
@@ -184,10 +179,12 @@ int main(int argc, char *argv[]) {
 
         // Print the server's response
         printf("\nServer response: %s\n", recvbuffer);
+        close(sockfd);
+        sockfd = socket(AF_INET, SOCK_STREAM, 0);
     }
     // Print the server's response
     printf("Server response: %s\n", recvbuffer);
-
+    
     // Optionally, send data to Arduino
     //send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
 
