@@ -12,6 +12,8 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 // creating a webserver in C
 // that connects to a client browser
@@ -316,17 +318,51 @@ int main(int argc, char *argv[]) {
                         return 1;
                     }
                     send(new_socket,current_time,strlen(current_time),0);
-                     
-
                 }
             }
             else if(strcmp("dynamic", request) == 0){
+                /* Run the ./my-histogram file executable */
+                char buffer[] = "./my-histogram ";
+                char destination[1000];
                 // get a dynamic request
-                printf("HISTOGRAM FOR THIS DIRECTORY: %s\n",args);
+                printf("HISTOGRAM FOR THE %s DIRECTORY \n",args);
                 fflush(stdout);
                 char *func = strtok(args, "=");
                 char *f_arg = strtok(NULL, " ");
-                system("./my-histogram ./");
+
+                strcpy(destination, buffer);
+                strcat(buffer, args);
+                printf("buffer: %s", buffer);
+                // runs entire my-histogram pipeline:
+                system(buffer);
+                //system("my-histogram.cgi");
+
+                /* Now Display the my-histogram.jpg */
+                size_t bytes_read;
+                char image_buffer[1024];
+                
+                file = fopen("my-histogram.jpg", "rb");
+
+                if (!file) {
+                    perror("Error opening image file");
+                    return 1;
+                }
+                //headers
+                
+                char http_response[1024];
+                
+                snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\nContent-Type: image/%s\n\n", extension );
+                
+                printf("Arrive at Image %s\n", http_response);
+                fflush(stdout);
+                send(new_socket, http_response, strlen(http_response), 0);
+                
+                while ((bytes_read = fread(image_buffer, 1, sizeof(image_buffer), file)) > 0) {\
+                    
+                    
+                    send(new_socket, image_buffer, bytes_read, 0);
+                }
+            fclose(file);
             }
           }
           exit(0);
@@ -343,12 +379,7 @@ int main(int argc, char *argv[]) {
         //send(new_socket, response, strlen(response), 0);
         
         close(new_socket);
-        
-            
-        
-
-        
-        
+      
     }
 
     return 0;
