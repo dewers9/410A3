@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     while (1) {
         // APUE pg. 608:
         // We use the accept function to retrieve a connect request and convert it into a connection.
-        printf("===== Web Server Waiting for Connection=====\n");
+        printf("===== Web Server Waiting for Connection =====\n");
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
             perror("accept");
             exit(EXIT_FAILURE);
@@ -265,8 +265,6 @@ int main(int argc, char *argv[]) {
                     strcat(dir_contents, entry->d_name);
                     strcat(dir_contents, "\n");
                 }
-                
-                
                 
                 char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
                 send(new_socket, http_response, strlen(http_response), 0);

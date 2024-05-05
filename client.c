@@ -183,7 +183,6 @@ int main(int argc, char *argv[]) {
             } else {
                 printf("Failed to extract time.\n");
             }
-            
             send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
             send = 0;
         }
