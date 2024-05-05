@@ -31,12 +31,15 @@ int send_to_arduino(const char *portname, const char *data) {
         return -1;
     }
 
+
     memset(&tty, 0, sizeof tty);
     if (tcgetattr(fd, &tty) != 0) {
         perror("Error from tcgetattr");
         close(fd);
         return -1;
     }
+
+
 
     cfsetospeed(&tty, B9600); // Set baud rate
     cfsetispeed(&tty, B9600);
@@ -81,7 +84,7 @@ int main() {
         exit(1);
     }
     else{
-        printf("Socket opened");
+        printf("Socket opened\n");
     }
 
     // Define the server address
@@ -100,7 +103,7 @@ int main() {
         exit(1);
     }
     else
-        printf("connected to the server..\n");
+        printf("connected to the server...\n");
 
     // Prepare the HTTP GET request message
     snprintf(sendbuffer, sizeof(sendbuffer), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
