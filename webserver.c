@@ -143,23 +143,6 @@ int main(int argc, char *argv[]) {
         printf("Arguments %s\n", args);
         fflush(stdout);
 
-<<<<<<< HEAD
-        //pid_t pid = fork();
-        // if(pid_t < 0){
-        //     perror("failed to fork");
-        //     exit(1);
-        // }
-        // else if (pid_t == 0){
-            if(strstr(buffer, "text/html") == 0){
-                printf("Client request received\n");
-                system("ls -l -a");
-            }
-        // }
-        // else{
-        //     waitpid(pid_t);
-        // }
-
-=======
         
         
         //
@@ -236,7 +219,7 @@ int main(int argc, char *argv[]) {
                     // Write data to the pipe
                     dup2(pipefd[1], STDOUT_FILENO);
                     char *args[] = { request, NULL };
-                    char cur_dir[100] = "/mnt/c/Users/ricky/Desktop/Final_Project/";
+                    char cur_dir[100] = "./";
                     strcat(cur_dir, request);
                 
                     if (execvp(cur_dir, args) == -1) {
@@ -270,7 +253,7 @@ int main(int argc, char *argv[]) {
                 fflush(stdout);
                 DIR *directory;
                 struct dirent *entry;
-                directory = opendir("/mnt/c/Users/ricky/Desktop/Final_Project");
+                directory = opendir("./");
                 if (directory == NULL) {
                     perror("Error opening directory");
                 
@@ -296,7 +279,6 @@ int main(int argc, char *argv[]) {
                 
             }
         }
->>>>>>> origin/ricky_dev
         // Send response
         // write(new_socket, response, strlen(response));
         // close(new_socket);
