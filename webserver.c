@@ -286,12 +286,7 @@ int main(int argc, char *argv[]) {
         //send(new_socket, response, strlen(response), 0);
         
         close(new_socket);
-        
-            
-        
-
-        
-        
+                
     }
 
     return 0;
