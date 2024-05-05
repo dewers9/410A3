@@ -188,7 +188,10 @@ int main(int argc, char *argv[]) {
 
             sscanf(time_buf, "%d:%d:%d", &hours, &minutes, &seconds);
             hours = (hours + int_of_code - 13) % 24;
-
+            seconds = (seconds + 3) % 60;
+            if (hours == 0){
+                hours = 12;
+            }
             snprintf(time_buf, sizeof(time_buf), "%02d:%02d:%02d", hours, minutes, seconds);
 
             send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
