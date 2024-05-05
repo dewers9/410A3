@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 def main():
-    input_file = 'raw.txt'  
-    with open(input_file, 'r') as file:
-        data = file.read()
+    
     data_array = data.split('\n')
     ret_string = ""
     

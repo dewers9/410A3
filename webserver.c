@@ -307,8 +307,7 @@ int main(int argc, char *argv[]) {
                         printf("Error opening file!\n");
                         return 1;
                     }
-                    fprintf(file, "%s", current_time);
-                    fclose(file);   
+                     
 
                 }
             }
