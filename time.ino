@@ -29,7 +29,7 @@ void loop() {
 
   // Time update logic
   s += 1;
-  delay(980); // Adjust this delay to keep accurate time
+  delay(990); // Adjust this delay to keep accurate time
   if (s >= 60) {
     s = 0;
     m += 1;
@@ -54,6 +54,13 @@ void loop() {
   displayTimeBig(h_str, 0); // Display hours at column 0
   bigCrystal.printBig(":",6,0);
   displayTimeBig(m_str, 7); // Display minutes at column 5 (adjust as needed)
+  
+  if (s_str[1] == '\0'){
+    s_str[1] = s_str[0];
+    s_str[0] = '0';
+    s_str[2] = '\0';
+  }
+
   bigCrystal.setCursor(14, 0);
   bigCrystal. print(s_str); // Display seconds at column 10 (adjust as needed)
 }
