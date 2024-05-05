@@ -12,7 +12,6 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <time.h>
-#include <sys/wait.h>
 
 // creating a webserver in C
 // that connects to a client browser
@@ -21,19 +20,33 @@
 // for use by a server
 
 #define BUFFER_SIZE 1024
-
-int get_local_time(void){
+//Africa
+//America
+//Antarctica
+//Arctic
+//Asia
+//Atlantic
+//Australia
+//Europe
+//Indian
+//Pacific
+char buffer[80];
+char * get_local_time(char* timezone){
+   
+    setenv("TZ", timezone, 1);
+    tzset();
     time_t rawtime;
-    struct tm * timeinfo;
-
-    time ( &rawtime );
-    timeinfo = localtime ( &rawtime );
-    printf ( "Current local time and date: %s", asctime (timeinfo) );
-    return 0;
+    struct tm *timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+    
+   
+    return asctime(timeinfo);
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 1){
+    if (argc < 0){
         perror("No Port Specified");
         exit(EXIT_FAILURE);
     }
@@ -97,7 +110,7 @@ int main(int argc, char *argv[]) {
     while (1) {
         // APUE pg. 608:
         // We use the accept function to retrieve a connect request and convert it into a connection.
-        printf("===== Web Server Waiting for Connection =====\n");
+        printf("===== Web Server Waiting for Connection=====\n");
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
             perror("accept");
             exit(EXIT_FAILURE);
@@ -128,6 +141,8 @@ int main(int argc, char *argv[]) {
         
         token = strtok(token, ".");
         token = strtok(NULL, ".");
+        
+    
         
         char *extension = NULL;
         if(token){
@@ -251,7 +266,7 @@ int main(int argc, char *argv[]) {
                 fflush(stdout);
                 DIR *directory;
                 struct dirent *entry;
-                directory = opendir("./");
+                directory = opendir(".");
                 if (directory == NULL) {
                     perror("Error opening directory");
                 
@@ -264,6 +279,8 @@ int main(int argc, char *argv[]) {
                     strcat(dir_contents, "\n");
                 }
                 
+                
+                
                 char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
                 send(new_socket, http_response, strlen(http_response), 0);
                 // Close the directory
@@ -273,6 +290,27 @@ int main(int argc, char *argv[]) {
                 send(new_socket, html, strlen(html), 0);
                 closedir(directory);
                 
+            }else if(strcmp("request", request) == 0){
+                printf("THESE ARE THE ARGUMENTS %s\n",args);
+                fflush(stdout);
+                char *func = strtok(args, "=");
+                char *f_arg = strtok(NULL, " ");
+
+                //arduino request
+                if (strcmp("zone", func ) ==  0){
+                    
+                    char * current_time = get_local_time(f_arg);
+                    printf("The Date in %s is %s", f_arg, current_time);
+                    fflush(stdout);
+                    file = fopen("raw.txt", "a");
+                     if (file == NULL) {
+                        printf("Error opening file!\n");
+                        return 1;
+                    }
+                    send(new_socket,current_time,strlen(current_time),0);
+                     
+
+                }
             }
         }
         // Send response
@@ -283,7 +321,12 @@ int main(int argc, char *argv[]) {
         //send(new_socket, response, strlen(response), 0);
         
         close(new_socket);
-                
+        
+            
+        
+
+        
+        
     }
 
     return 0;
