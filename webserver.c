@@ -264,7 +264,7 @@ int main(int argc, char *argv[]) {
           fflush(stdout);
           DIR *directory;
           struct dirent *entry;
-          directory = opendir("/mnt/c/Users/ricky/Desktop/Final_Project");
+          directory = opendir("./");
           if (directory == NULL) {
             perror("Error opening directory");
             
