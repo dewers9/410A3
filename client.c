@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /timezone?zone=Etc/GMT:%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code - 13, SERVER_IP);
 
             sprintf(time_buf,"%d:00:00",int_of_code);
-            printf("%d:00:00",int_of_code);
+            // printf("%d:00:00",int_of_code);
             
             send = 1;
 
@@ -173,6 +173,8 @@ int main(int argc, char *argv[]) {
 
         // Print the server's response
         printf("\nServer response: %s\n", recvbuffer);
+
+        
 
         if(send){
             send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
