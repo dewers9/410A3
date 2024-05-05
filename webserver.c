@@ -23,14 +23,19 @@
 
 #define BUFFER_SIZE 1024
 
-int get_local_time(void){
-  time_t rawtime;
-  struct tm * timeinfo;
-
-  time ( &rawtime );
-  timeinfo = localtime ( &rawtime );
-  printf ( "Current local time and date: %s", asctime (timeinfo) );
-  return 0;
+char buffer[80];
+char * get_local_time(char* timezone){
+   
+    setenv("TZ", timezone, 1);
+    tzset();
+    time_t rawtime;
+    struct tm *timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+    
+   
+    return asctime(timeinfo);
 }
 
 int main(int argc, char *argv[]) {
@@ -258,7 +263,27 @@ int main(int argc, char *argv[]) {
           
         }
 
-      }else{
+      } else if(strcmp("request", request) == 0){
+        printf("THESE ARE THE ARGUMENTS %s\n",args);
+        fflush(stdout);
+        char *func = strtok(args, "=");
+        char *f_arg = strtok(NULL, " ");
+
+        //arduino request
+        if (strcmp("zone", func ) ==  0){
+            
+            char * current_time = get_local_time(f_arg);
+            printf("The Date in %s is %s", f_arg, current_time);
+            fflush(stdout);
+            file = fopen("raw.txt", "a");
+                if (file == NULL) {
+                printf("Error opening file!\n");
+                return 1;
+            }
+                
+            send(new_socket, current_time, strlen(current_time),0);
+        }
+    } else {
         if(strcmp("directory", request) == 0){
           printf("Arrive at Directory\n");
           fflush(stdout);

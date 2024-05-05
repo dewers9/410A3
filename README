@@ -1,0 +1,5 @@
+RUN make to compile files
+
+SSH webserver executable to vm and run that on vm
+
+RUN client on machine
