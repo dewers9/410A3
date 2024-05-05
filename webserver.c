@@ -105,6 +105,8 @@ int main(int argc, char *argv[]) {
 
         // Read the incoming request
         read(new_socket, buffer, BUFFER_SIZE);
+
+
         //first check if arguments, get those, then get extension
         char *token;
         printf("HTTP Part: %s\n", buffer);
@@ -143,160 +145,6 @@ int main(int argc, char *argv[]) {
         printf("Arguments %s\n", args);
         fflush(stdout);
 
-<<<<<<< HEAD
-        //pid_t pid = fork();
-        // if(pid_t < 0){
-        //     perror("failed to fork");
-        //     exit(1);
-        // }
-        // else if (pid_t == 0){
-            if(strstr(buffer, "text/html") == 0){
-                printf("Client request received\n");
-                system("ls -l -a");
-            }
-        // }
-        // else{
-        //     waitpid(pid_t);
-        // }
-
-=======
-        
-        
-        //
-        //GOT
-        //TOKEN
-        //SENDING RESPONSES
-        
-        
-        FILE *file;
-        if (extension){
-            printf("Arrive at Extension\n");
-            fflush(stdout);
-            if (strcmp(extension, "html") == 0){
-                file = fopen(request, "r");
-                if (file == NULL) {
-                    perror("Error opening file");
-                    char *not_found = "<html><body><h1>404 Not Found</h1></body></html>";
-                    char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
-                    send(new_socket, http_response, strlen(http_response), 0);
-                    send(new_socket , not_found, strlen(not_found), 0);
-                
-                }   
-            //read contents into buffer
-                char html_buffer[1024];
-                fread(html_buffer, sizeof(char), sizeof(html_buffer), file);
-                //send html headers then the content
-                char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
-                send(new_socket, http_response, strlen(http_response), 0);
-                send(new_socket , html_buffer, strlen(html_buffer), 0);
-                fclose(file);
-            }else if(strcmp("gif", extension) == 0 || strcmp("jpeg", extension) == 0 || strcmp("jpg", extension) == 0){
-                size_t bytes_read;
-                char image_buffer[1024];
-                
-                file = fopen(request, "rb");
-
-                if (!file) {
-                    perror("Error opening image file");
-                    return 1;
-                }
-                //headers
-                
-                char http_response[1024];
-                
-                snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\nContent-Type: image/%s\n\n", extension );
-                
-                printf("Arrive at Image %s\n", http_response);
-                fflush(stdout);
-                send(new_socket, http_response, strlen(http_response), 0);
-                
-                while ((bytes_read = fread(image_buffer, 1, sizeof(image_buffer), file)) > 0) {\
-                    
-                    
-                    send(new_socket, image_buffer, bytes_read, 0);
-                }
-            fclose(file);
-            }else if(strcmp("cgi", extension) == 0){
-               
-                int pipefd[2];
-                pid_t pid;
-
-                // Create a pipe
-                if (pipe(pipefd) == -1) {
-                    perror("pipe");
-                    exit(EXIT_FAILURE);
-                }
-                pid = fork();
-                if (pid == -1) {
-                    perror("fork");
-                    exit(EXIT_FAILURE);
-                } else if (pid == 0) {
-                    // Child process
-                    close(pipefd[0]);  // Close reading end of pipe
-                    // Write data to the pipe
-                    dup2(pipefd[1], STDOUT_FILENO);
-                    char *args[] = { request, NULL };
-                    char cur_dir[100] = "/mnt/c/Users/ricky/Desktop/Final_Project/";
-                    strcat(cur_dir, request);
-                
-                    if (execvp(cur_dir, args) == -1) {
-                        perror("execvp failed");
-                        return 1;
-                    }
-
-                    close(pipefd[1]);  // Close writing end of pipe
-                    exit(EXIT_SUCCESS);
-                } else {
-                    // Parent process
-                    close(pipefd[1]);  // Close writing end of pipe
-                    char buffer[1024];
-                    // Read data from the pipe
-                    read(pipefd[0], buffer, sizeof(buffer));
-                    printf("Received message from child: %s\n", buffer);
-                    char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
-                    send(new_socket, http_response, strlen(http_response), 0);
-                    char html[2048] = {0};
-                    sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Script Output</title>\n</head>\n<body>\n<h1>Script Output</h1>\n<p>%s</p>\n</body>\n</html>", buffer);
-                    send(new_socket, html, strlen(html), 0);
-                    close(pipefd[0]);  // Close reading end of pipe
-                }
-
-                
-            }
-            
-        }else{
-            if(strcmp("directory", request) == 0){
-                printf("Arrive at Directory\n");
-                fflush(stdout);
-                DIR *directory;
-                struct dirent *entry;
-                directory = opendir("/mnt/c/Users/ricky/Desktop/Final_Project");
-                if (directory == NULL) {
-                    perror("Error opening directory");
-                
-                }
-
-                // Read directory entries
-                char dir_contents[1024];
-                while ((entry = readdir(directory)) != NULL) {
-                    strcat(dir_contents, entry->d_name);
-                    strcat(dir_contents, "\n");
-                }
-                
-                
-                
-                char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
-                send(new_socket, http_response, strlen(http_response), 0);
-                // Close the directory
-                char html[2048] = {0};
-                
-                sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>Directory Listing</p>\n<h5>%s</p\n</body>\n</html>", dir_contents);
-                send(new_socket, html, strlen(html), 0);
-                closedir(directory);
-                
-            }
-        }
->>>>>>> origin/ricky_dev
         // Send response
         // write(new_socket, response, strlen(response));
         // close(new_socket);
@@ -307,7 +155,7 @@ int main(int argc, char *argv[]) {
         close(new_socket);
         
             
-        
+        ///////
 
         
         
