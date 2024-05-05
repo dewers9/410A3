@@ -70,8 +70,9 @@ void displayTimeBig(char *time_str, int startCol) {
 
 void clearBig() {
   for (int row = 0; row < 2; row++) {
-    for (int col = 0; col < 16; col += 4) {
-      bigCrystal.writeBig(' ', col, row); // Clear each big character slot
+    for (int col = 0; col < 16; col += 1) {
+      bigCrystal.setCursor(col, row);
+      bigCrystal.write(' '); // Clear each big character slot
     }
   }
 }

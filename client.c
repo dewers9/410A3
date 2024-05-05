@@ -33,8 +33,6 @@ int send_to_arduino(const char *portname, const char *data) {
         return -1;
     }
 
-
-
     cfsetospeed(&tty, B9600); // Set baud rate
     cfsetispeed(&tty, B9600);
 
@@ -65,6 +63,7 @@ int send_to_arduino(const char *portname, const char *data) {
 }
 
 int main(int argc, char *argv[]) {
+
     int port = 5050;
 
     if (argc < 1){
