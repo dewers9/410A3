@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     port = atoi(a);
     
     printf("Starting client\n");
-    int sockfd;
+    int sockfd, send =0;
     struct sockaddr_in serv_addr;
     char sendbuffer[BUFFER_SIZE];
     char recvbuffer[BUFFER_SIZE];
@@ -149,13 +149,13 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
             // Format the HTTP GET request with the current timezone
-            snprintf(sendbuffer, sizeof(sendbuffer), "GET /timezone?zone=%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code, SERVER_IP);
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /timezone?zone=Etc/GMT:%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code - 13, SERVER_IP);
 
             sprintf(time_buf,"%d:00:00",int_of_code);
             printf("%d:00:00",int_of_code);
             
-            // Optionally, send data to Arduino
-            send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
+            send = 1;
+
         }
 
         // Send the GET request
@@ -173,6 +173,11 @@ int main(int argc, char *argv[]) {
 
         // Print the server's response
         printf("\nServer response: %s\n", recvbuffer);
+
+        if(send){
+            send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
+            send = 0;
+        }
 
         close(sockfd);
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
