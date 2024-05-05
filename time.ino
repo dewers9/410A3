@@ -33,11 +33,22 @@ void loop() {
   if (s >= 60) {
     s = 0;
     m += 1;
+
+    bigCrystal.setCursor(14, 0);
+    bigCrystal.print('  ');
+
     if (m >= 60) {
       m = 0;
       h += 1;
+
+      bigCrystal.writeBig(' ',7,0);
+      bigCrystal.writeBig(' ',10,0);
+
       if (h >= 24) {
         h = 0;
+
+        bigCrystal.writeBig(' ',0,0);
+        bigCrystal.writeBig(' ',3,0);
       }
     }
   }
@@ -48,7 +59,7 @@ void loop() {
   itoa(s, s_str, 10);
 
   // Clear the LCD
-  clearBig();
+  // clearBig();
 
   // Display time in big font
   displayTimeBig(h_str, 0); // Display hours at column 0
