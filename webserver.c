@@ -129,8 +129,6 @@ int main(int argc, char *argv[]) {
         token = strtok(token, ".");
         token = strtok(NULL, ".");
         
-    
-        
         char *extension = NULL;
         if(token){
             extension = malloc(strlen(token) + 1);

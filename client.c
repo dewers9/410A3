@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
             // Format the HTTP GET request with the current timezone
-            snprintf(sendbuffer, sizeof(sendbuffer), "GET /timezone?zone=Etc/GMT:%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code - 13, SERVER_IP);
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?zone=Etc/GMT:%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code - 13, SERVER_IP);
 
             sprintf(time_buf,"%d:00:00",int_of_code);
             // printf("%d:00:00",int_of_code);
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
             send = 0;
 
             char html[2048] = {0};
-            sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>Directory Listing</p>\n<h5>TIME RECIEVED=%s</p\n</body>\n</html>", time_buf);
+            sprintf(html,"HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>Directory Listing</p>\n<h5>TIME RECIEVED=%s</p\n</body>\n</html>", time_buf);
 
             if (write(sockfd, html, strlen(html)) < 0) {
                 perror("ERROR writing to socket");
