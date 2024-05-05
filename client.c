@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?ls=TRUE HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
         } else {
             int_of_code = atoi(input);
-            if (int_of_code < 0 || int_of_code > 25){
+            if (int_of_code < 1 || int_of_code > 25){
                 perror("ERROR Invalid Timezone code");
                 exit(1);
             }
@@ -174,9 +174,13 @@ int main(int argc, char *argv[]) {
         // Print the server's response
         printf("\nServer response: %s\n", recvbuffer);
 
-        
-
         if(send){
+            if (sscanf(recvbuffer, "%*s %*s %*s %*s %*s %*s %8s", time_buf) == 1) {
+                printf("Extracted time: %s\n", time_buf);
+            } else {
+                printf("Failed to extract time.\n");
+            }
+            
             send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
             send = 0;
         }
