@@ -185,6 +185,16 @@ int main(int argc, char *argv[]) {
             }
             send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
             send = 0;
+
+            char html[2048] = {0};
+            sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>Directory Listing</p>\n<h5>TIME RECIEVED=%s</p\n</body>\n</html>", time_buf);
+
+            if (write(sockfd, sendbuffer, strlen(sendbuffer)) < 0) {
+                perror("ERROR writing to socket");
+                exit(1);
+            } 
+
+            printf("Wrote back to Server!\n\n%s\n",html);
         }
 
         close(sockfd);
