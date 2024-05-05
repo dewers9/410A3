@@ -136,15 +136,15 @@ int main(int argc, char *argv[]) {
             // Here you would add your specific control flow for handling the file
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
 
-        } else if (strncmp(input, "run", strlen("run")) == 0) {
+        } else if (strncmp(input, "dynamic", strlen("dynamic")) == 0) {
             // Extract the filename
             // Assuming the format "file filename", we skip the first 5 characters and any subsequent spaces
-            sscanf(input + strlen("run"), " %255[^\n]", fileName); // Skip the keyword and any spaces after it
+            sscanf(input + strlen("dynmaic"), " %255[^\n]", fileName); // Skip the keyword and any spaces after it
             
             // Output the extracted filename and activate specific control flow
             printf("Filename extracted: '%s'\n", fileName);
             // Here you would add your specific control flow for handling the file
-            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /dynamic?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
         } else if (strncmp(input, "ls", strlen("ls")) == 0) {
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?ls=TRUE HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
         } else {
@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
 
             sscanf(time_buf, "%d:%d:%d", &hours, &minutes, &seconds);
             hours = (hours + int_of_code - 13) % 24;
-            seconds = (seconds + 3) % 60;
+            seconds = (seconds + 2) % 60;
             if (hours == 0){
                 hours = 12;
             }
@@ -197,12 +197,18 @@ int main(int argc, char *argv[]) {
             send_to_arduino("/dev/cu.usbmodem1101", time_buf); // Update this with actual data and port
             send = 0;
 
+            close(sockfd);
+            sockfd = socket(AF_INET, SOCK_STREAM, 0);
+            if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+                perror("ERROR connecting");
+                exit(1);
+            }
+
             char html[2048] = {0};
-            sprintf(html,"HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n<head>\n\t<style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Directory Listing</title>\n</head>\n<body>\n<h1>Directory Listing</p>\n<h5>TIME RECIEVED=%s</p\n</body>\n</html>", time_buf);
+            sprintf(html,"PUT /reciept?zone=None HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n<head>\n<title>Client Response</title>\n</head>\n<body>\n<h1>Client Response</p>\n<h5>TIME RECIEVED=%s</p\n</body>\n</html> HTTP/1.1\r\nHost: %s\r\n\r\n", time_buf,SERVER_IP);
+            // snprintf(html, sizeof(html), "GET /request?zone=Etc/GMT:%d HTTP/1.1\r\nHost: %s\r\n\r\n", int_of_code - 13, SERVER_IP);
 
             write(sockfd, html, strlen(html));
-
-            printf("Wrote back to Server!\n\n%s\n",html);
         }
 
         close(sockfd);

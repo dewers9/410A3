@@ -29,7 +29,7 @@ void loop() {
 
   // Time update logic
   s += 1;
-  delay(980); // Adjust this delay to keep accurate time
+  delay(983); // Adjust this delay to keep accurate time
   if (s >= 60) {
     s = 0;
     m += 1;
