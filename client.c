@@ -106,9 +106,8 @@ int main(int argc, char *argv[]) {
         char fileName[256]; // Buffer to store the filename
         int int_of_code;
 
-        printf("\nEnter timezone Code or command: ");
+        printf("\n===== Enter timezone Code or command =====\n>  ");
         if (fgets(input, sizeof(input), stdin)) {  // Read line from stdin
-            printf("You entered: %s", input);
         } else {
             printf("Error reading input.\n");
         }
@@ -131,6 +130,7 @@ int main(int argc, char *argv[]) {
             // Here you would add your specific control flow for handling the file
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
 
+            send = 0;
         } else if (strncmp(input, "dynamic", strlen("dynamic")) == 0) {
             // Extract the filename
             // Assuming the format "file filename", we skip the first 5 characters and any subsequent spaces
@@ -140,8 +140,14 @@ int main(int argc, char *argv[]) {
             printf("Filename extracted: '%s'\n", fileName);
             // Here you would add your specific control flow for handling the file
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /dynamic?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
+
+            send = 0;
+
         } else if (strncmp(input, "ls", strlen("ls")) == 0) {
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?ls=TRUE HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
+
+            send = 0;
+
         } else {
             int_of_code = atoi(input);
             if (int_of_code < 1 || int_of_code > 25){
@@ -215,9 +221,6 @@ int main(int argc, char *argv[]) {
     }
     // Print the server's response
     printf("Server response: %s\n", recvbuffer);
-
-    // Optionally, send data to Arduino
-    //send_to_arduino("/dev/ttyUSB0", "Data to send to Arduino"); // Update this with actual data and port
 
     // Close the socket
     close(sockfd);
