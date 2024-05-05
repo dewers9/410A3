@@ -102,11 +102,6 @@ int main(int argc, char *argv[]) {
     }
 
     while(1) {
-        
-        if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-            perror("ERROR connecting");
-            exit(1);
-        }
 
         char fileName[256]; // Buffer to store the filename
         int int_of_code;
@@ -161,6 +156,10 @@ int main(int argc, char *argv[]) {
             
             send = 1;
 
+        }
+        if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+            perror("ERROR connecting");
+            exit(1);
         }
 
         // Send the GET request
