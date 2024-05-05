@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
             // Output the extracted filename and activate specific control flow
             printf("Filename extracted: '%s'\n", fileName);
             // Here you would add your specific control flow for handling the file
-            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?run=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
+            snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?file=%s HTTP/1.1\r\nHost: %s\r\n\r\n", fileName, SERVER_IP);
         } else if (strncmp(input, "ls", strlen("ls")) == 0) {
             snprintf(sendbuffer, sizeof(sendbuffer), "GET /request?ls=TRUE HTTP/1.1\r\nHost: %s\r\n\r\n", SERVER_IP);
         } else {
