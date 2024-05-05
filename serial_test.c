@@ -48,7 +48,7 @@ int main() {
         return 1;
     }
 
-    char msg[] = "9:00:01";
+    char msg[] = "5:39:14";
     write(serial_port, msg, sizeof(msg));
 
     // Read the incoming data

@@ -1,15 +1,32 @@
 #!/usr/bin/env python3
 
-import geopandas as gpd
+import json
 import matplotlib.pyplot as plt
+from shapely.geometry import shape
+import matplotlib.patches as mpatches
+from matplotlib.collections import PatchCollection
 
 def plot_timezones(geojson_path):
-    # Load the GeoJSON file into a GeoDataFrame
-    timezones = gpd.read_file(geojson_path)
+    # Load the GeoJSON file
+    with open(geojson_path, 'r') as f:
+        data = json.load(f)
     
-    # Create a plot of the timezones
+    # Prepare the plot
     fig, ax = plt.subplots(1, 1, figsize=(20, 10))
-    timezones.plot(ax=ax, cmap='tab20b', edgecolor='black')  # Using a colormap and edgecolor for better visibility
+    patches = []
+    for feature in data['features']:
+        geometry = shape(feature['geometry'])
+        if geometry.type == 'Polygon':
+            polygon = mpatches.Polygon(list(geometry.exterior.coords), closed=True)
+            patches.append(polygon)
+        elif geometry.type == 'MultiPolygon':
+            for poly in geometry.geoms:
+                polygon = mpatches.Polygon(list(poly.exterior.coords), closed=True)
+                patches.append(polygon)
+    
+    # Add patches to the axes
+    p = PatchCollection(patches, cmap='tab20b', edgecolor='black')
+    ax.add_collection(p)
     
     # Set plot title and labels
     ax.set_title('World Time Zones Map')
@@ -19,7 +36,7 @@ def plot_timezones(geojson_path):
     # Remove x and y axis for a cleaner look
     ax.set_xticks([])
     ax.set_yticks([])
-    
+
     # Show the plot
     plt.show()
 
