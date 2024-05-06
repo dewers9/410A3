@@ -14,12 +14,60 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <stdint.h>
 
 // creating a webserver in C
 // that connects to a client browser
 
 // initialize a socket endpoint
 // for use by a server
+
+static const char base64_chars[] = 
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
+
+static int base64_encode(const unsigned char *input, int input_length, char *output, int output_size) {
+    int i = 0, j = 0;
+    int enc_len = 0;
+    unsigned char char_array_3[3];
+    unsigned char char_array_4[4];
+
+    while (input_length--) {
+        char_array_3[i++] = *(input++);
+        if (i == 3) {
+            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+            char_array_4[3] = char_array_3[2] & 0x3f;
+
+            for(i = 0; (i <4) ; i++)
+                if(enc_len + 1 < output_size) output[enc_len++] = base64_chars[char_array_4[i]];
+            i = 0;
+        }
+    }
+
+    if (i) {
+        for(j = i; j < 3; j++)
+            char_array_3[j] = '\0';
+
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+        char_array_4[3] = char_array_3[2] & 0x3f;
+
+        for (j = 0; (j < i + 1); j++)
+            if(enc_len + 1 < output_size) output[enc_len++] = base64_chars[char_array_4[j]];
+
+        while((i++ < 3))
+            if(enc_len + 1 < output_size) output[enc_len++] = '=';
+    }
+
+    if(enc_len < output_size) output[enc_len] = '\0';
+
+    return enc_len;
+}
+
 
 #define BUFFER_SIZE 1024
 
@@ -190,32 +238,45 @@ int main(int argc, char *argv[]) {
           send(new_socket , html_buffer, strlen(html_buffer), 0);
           fclose(file);
         }else if(strcmp("gif", extension) == 0 || strcmp("jpeg", extension) == 0 || strcmp("jpg", extension) == 0){
-          size_t bytes_read;
-          char image_buffer[1024];
-          
-          file = fopen(request, "rb");
-          
-          if (!file) {
-            perror("Error opening image file");
-            return 1;
-          }
-          //headers
-          
-          char http_response[1024];
-          
-          snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\nContent-Type: image/%s\n\n", extension );
-          
-          printf("Arrive at Image %s\n", http_response);
-          fflush(stdout);
-          send(new_socket, http_response, strlen(http_response), 0);
-          
-          while ((bytes_read = fread(image_buffer, 1, sizeof(image_buffer), file)) > 0) { \
-            
-            
-            send(new_socket, image_buffer, bytes_read, 0);
-          }
-          fclose(file);
-        }else if(strcmp("cgi", extension) == 0){
+            size_t bytes_read;
+            char image_buffer[1024];
+
+            file = fopen(request, "rb");
+
+            if (!file) {
+                perror("Error opening image file");
+                return 1;
+            }
+
+            // Headers
+            char http_response[2048];
+            snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\nContent-Type: text/html; charset=UTF-8\n\n");
+            send(new_socket, http_response, strlen(http_response), 0);
+
+            // Send HTML content with image embedded
+            char html_content[2048];
+            snprintf(html_content, sizeof(html_content),
+                    "<html><head><title>CS410 Webserver</title></head>"
+                    "<body style='background-color: white; text-align: center; font-size: 16pt; color: red;'>"
+                    "<h1>CS410 Webserver</h1>"
+                    "<img src='data:image/%s;base64,", extension);
+
+            send(new_socket, html_content, strlen(html_content), 0);
+
+            // Base64 encode and send image data inline within the HTML
+            while ((bytes_read = fread(image_buffer, 1, sizeof(image_buffer), file)) > 0) {
+                // Encode to base64 - you'll need to implement or link a base64 encoding function here.
+                char encoded[2048];
+                int encoded_length = base64_encode(image_buffer, bytes_read, encoded, sizeof(encoded));
+                send(new_socket, encoded, encoded_length, 0);
+            }
+
+            // Close the HTML tag
+            char end_html[] = "'/></body></html>";
+            send(new_socket, end_html, strlen(end_html), 0);
+
+            fclose(file);
+        } else if(strcmp("cgi", extension) == 0){
           
           int pipefd[2];
           pid_t pid;
