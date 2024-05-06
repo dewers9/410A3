@@ -1,5 +1,11 @@
-37.5
-7.5
-38.6
-46.7
-90.2
+<!doctype html>
+<html>
+<head>
+<title>Our Funky HTML Page</title>
+<meta name="description" content="Our first page">
+<meta name="keywords" content="html tutorial template">
+</head>
+<body>
+Content goes here.
+</body>
+</html>

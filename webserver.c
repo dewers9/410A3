@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
   while (1) {
     // APUE pg. 608:
     // We use the accept function to retrieve a connect request and convert it into a connection.
-    printf("===== Web Server Waiting for Connection=====\n");
+    printf("=====Web Server Waiting for Connection=====\n");
     if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
       perror("accept");
       exit(EXIT_FAILURE);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
       char *token;
       printf("HTTP Part: %s\n", buffer);
       fflush(stdout);
-      char *args = NULL;
+      char *args = malloc(4096);
       token = strtok(buffer,"\n");
       token += 5;
       token = strtok(token, " ");
@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
             char *args[] = { request, NULL };
             char cur_dir[100] = "./";
             strcat(cur_dir, request);
-
+            char *arg[] = {cur_dir,args, NULL};
             if (execvp(cur_dir, args) == -1) {
               perror("execvp failed");
               return 1;
@@ -263,7 +263,7 @@ int main(int argc, char *argv[]) {
             send(new_socket, http_response, strlen(http_response), 0);
             char html[2048] = {0};
             sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Script Output</title>\n</head>\n<body>\n<h1>Script Output</h1>\n<p>%s</p>\n</body>\n</html>", buffer);
-            send(new_socket, html, strlen(html), 0);
+            send(new_socket, buffer, strlen(buffer), 0);
             close(pipefd[0]);  // Close reading end of pipe
           }
 
