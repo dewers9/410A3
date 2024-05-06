@@ -241,7 +241,6 @@ int main(int argc, char *argv[]) {
             close(pipefd[0]);  // Close reading end of pipe
             // Write data to the pipe
             dup2(pipefd[1], STDOUT_FILENO);
-            char *args[] = { request, NULL };
             char cur_dir[100] = "./";
             strcat(cur_dir, request);
             char *arg[] = {cur_dir,args, NULL};
@@ -262,7 +261,7 @@ int main(int argc, char *argv[]) {
             char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
             send(new_socket, http_response, strlen(http_response), 0);
 
-            
+
             send(new_socket, buffer, strlen(buffer), 0);
             close(pipefd[0]);  // Close reading end of pipe
           }
@@ -321,7 +320,7 @@ int main(int argc, char *argv[]) {
           }
         }
         else if(strcmp("dynamic", request) == 0){
-          char buffer[] = "./my-histogram ";
+          char buffer[] = "./my_histogram ";
           char destination[1000];
           // get a dynamic request
           
