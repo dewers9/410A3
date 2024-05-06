@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 # switch to python3 if this is not running ^^^
 
@@ -21,6 +21,6 @@ print(numbers)
 plt.bar(file_types, numbers)
 plt.xlabel('File Types')
 plt.ylabel('Frequency')
-plt.title('Frequency of File Typez')
-plt.savefig("my-histogram.jpg")
+plt.title('Frequency of File Typepoep')
+plt.savefig("./my-histogram.jpg")
 plt.show()

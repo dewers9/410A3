@@ -241,7 +241,7 @@ int main(int argc, char *argv[]) {
             close(pipefd[0]);  // Close reading end of pipe
             // Write data to the pipe
             dup2(pipefd[1], STDOUT_FILENO);
-            char *args[] = { request, NULL };
+            
             char cur_dir[100] = "./";
             strcat(cur_dir, request);
             char *arg[] = {cur_dir,args, NULL};
