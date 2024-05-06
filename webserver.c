@@ -245,7 +245,7 @@ int main(int argc, char *argv[]) {
             char cur_dir[100] = "./";
             strcat(cur_dir, request);
             char *arg[] = {cur_dir,args, NULL};
-            if (execvp(cur_dir, args) == -1) {
+            if (execvp(cur_dir, arg) == -1) {
               perror("execvp failed");
               return 1;
             }
@@ -261,8 +261,8 @@ int main(int argc, char *argv[]) {
             printf("Received message from child: %s\n", buffer);
             char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
             send(new_socket, http_response, strlen(http_response), 0);
-            char html[2048] = {0};
-            sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Script Output</title>\n</head>\n<body>\n<h1>Script Output</h1>\n<p>%s</p>\n</body>\n</html>", buffer);
+
+            
             send(new_socket, buffer, strlen(buffer), 0);
             close(pipefd[0]);  // Close reading end of pipe
           }
