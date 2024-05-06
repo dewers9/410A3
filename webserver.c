@@ -71,6 +71,15 @@ static int base64_encode(const unsigned char *input, int input_length, char *out
 
 #define BUFFER_SIZE 1024
 
+void sendHTML(int socket) {
+                char *header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+                char *html = "<!DOCTYPE html><html><head><title>CS410 Webserver</title><style>body {background-color: white; font-size: 16pt; color: red; text-align: center;} img {display: block; margin: 0 auto;}</style></head><body><h1>CS410 Webserver</h1><br><img src=\"clock.jpg\" alt=\"CS410 Image\"></body></html>";
+                
+                send(socket, header, strlen(header), 0);
+                send(socket, html, strlen(html), 0);
+            }
+
+
 char buffer[80];
 char * get_local_time(char* timezone){
    
@@ -238,44 +247,51 @@ int main(int argc, char *argv[]) {
           send(new_socket , html_buffer, strlen(html_buffer), 0);
           fclose(file);
         }else if(strcmp("gif", extension) == 0 || strcmp("jpeg", extension) == 0 || strcmp("jpg", extension) == 0){
-            size_t bytes_read;
-            char image_buffer[1024];
+            
+            sendHTML(new_socket);
+            
+            // size_t bytes_read;
+            // char image_buffer[1024];
 
-            file = fopen(request, "rb");
+            // file = fopen(request, "rb");
 
-            if (!file) {
-                perror("Error opening image file");
-                return 1;
-            }
+            // if (!file) {
+            //     perror("Error opening image file");
+            //     return 1;
+            // }
 
-            // Headers
-            char http_response[2048];
-            snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\nContent-Type: text/html; charset=UTF-8\n\n");
-            send(new_socket, http_response, strlen(http_response), 0);
+            // // Headers
+            // char http_response[2048];
+            // snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n");
+            // send(new_socket, http_response, strlen(http_response), 0);
 
-            // Send HTML content with image embedded
-            char html_content[2048];
-            snprintf(html_content, sizeof(html_content),
-                    "<html><head><title>CS410 Webserver</title></head>"
-                    "<body style='background-color: white; text-align: center; font-size: 16pt; color: red;'>"
-                    "<h1>CS410 Webserver</h1>"
-                    "<img src='data:image/%s;base64,", extension);
+            // // Send HTML content with image embedded
+            // char html_content[2048];
+            // snprintf(html_content, sizeof(html_content),
+            //     "<html><head><title>CS410 Webserver</title></head>"
+            //     "<body style='background-color: white; text-align: center; font-size: 16pt; color: red;'>"
+            //     "<h1>CS410 Webserver</h1>"
+            //     "<img src='data:image/%s;base64,", (strcmp(extension, "jpg") == 0 || strcmp(extension, "jpeg") == 0) ? "jpeg" : extension);
 
-            send(new_socket, html_content, strlen(html_content), 0);
 
-            // Base64 encode and send image data inline within the HTML
-            while ((bytes_read = fread(image_buffer, 1, sizeof(image_buffer), file)) > 0) {
-                // Encode to base64 - you'll need to implement or link a base64 encoding function here.
-                char encoded[2048];
-                int encoded_length = base64_encode(image_buffer, bytes_read, encoded, sizeof(encoded));
-                send(new_socket, encoded, encoded_length, 0);
-            }
+            // send(new_socket, html_content, strlen(html_content), 0);
 
-            // Close the HTML tag
-            char end_html[] = "'/></body></html>";
-            send(new_socket, end_html, strlen(end_html), 0);
+            // // Base64 encode and send image data inline within the HTML
+            // while ((bytes_read = fread(image_buffer, 1, sizeof(image_buffer), file)) > 0) {
+            //     // Encode to base64 - you'll need to implement or link a base64 encoding function here.
+            //     char encoded[2048];
+            //     int encoded_length = base64_encode(image_buffer, bytes_read, encoded, sizeof(encoded));
+            //     printf(encoded);
+            //     send(new_socket, encoded, encoded_length, 0);
+            // }
 
-            fclose(file);
+            // // Close the HTML tag
+            // char end_html[] = "'/></body></html>";
+            // printf(end_html);
+            // send(new_socket, end_html, strlen(end_html), 0);
+
+            // fclose(file);
+
         } else if(strcmp("cgi", extension) == 0){
           
           int pipefd[2];
@@ -300,27 +316,26 @@ int main(int argc, char *argv[]) {
             strcat(cur_dir, request);
             
             if (execvp(cur_dir, args) == -1) {
-              perror("execvp failed");
-              return 1;
+                perror("execvp failed");
+                return 1;
             }
             
             close(pipefd[1]);  // Close writing end of pipe
             exit(EXIT_SUCCESS);
-          } else {
-            // Parent process
-            close(pipefd[1]);  // Close writing end of pipe
-            char buffer[1024];
-            // Read data from the pipe
-            read(pipefd[0], buffer, sizeof(buffer));
-            printf("Received message from child: %s\n", buffer);
-            char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
-            send(new_socket, http_response, strlen(http_response), 0);
-            char html[2048] = {0};
-            sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Script Output</title>\n</head>\n<body>\n<h1>Script Output</h1>\n<p>%s</p>\n</body>\n</html>", buffer);
-            send(new_socket, html, strlen(html), 0);
-            close(pipefd[0]);  // Close reading end of pipe
-          }
-          
+            } else {
+                // Parent process
+                close(pipefd[1]);  // Close writing end of pipe
+                char buffer[1024];
+                // Read data from the pipe
+                read(pipefd[0], buffer, sizeof(buffer));
+                printf("Received message from child: %s\n", buffer);
+                char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+                send(new_socket, http_response, strlen(http_response), 0);
+                char html[2048] = {0};
+                sprintf(html,"<html>\n<head> <style>body {background-color: powderblue;}h1 {color: blue;}p    {color: red;}</style>\n<title>Script Output</title>\n</head>\n<body>\n<h1>Script Output</h1>\n<p>%s</p>\n</body>\n</html>", buffer);
+                send(new_socket, html, strlen(html), 0);
+                close(pipefd[0]);  // Close reading end of pipe
+            }
           
         }
 
@@ -362,8 +377,6 @@ int main(int argc, char *argv[]) {
             strcat(dir_contents, entry->d_name);
             strcat(dir_contents, "\n");
           }
-          
-          
           
           char *http_response = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
           send(new_socket, http_response, strlen(http_response), 0);
