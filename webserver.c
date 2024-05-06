@@ -47,40 +47,6 @@ char * get_local_time(char* timezone){
     return asctime(timeinfo);
 }
 
-void send_html(int socket, const char *image_url) {
-    char html_content[BUFFER_SIZE];
-
-    sprintf(html_content,
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html\r\n"
-        "Connection: close\r\n\r\n"
-        "<!DOCTYPE html>\n"
-        "<html lang=\"en\">\n"
-        "<head>\n"
-        "    <meta charset=\"UTF-8\">\n"
-        "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-        "    <title>CS410 Webserver</title>\n"
-        "    <style>\n"
-        "        body {\n"
-        "            background-color: white;\n"
-        "            text-align: center;\n"
-        "            font-size: 16pt;\n"
-        "            color: red;\n"
-        "        }\n"
-        "        img {\n"
-        "            margin-top: 20px;\n"
-        "        }\n"
-        "    </style>\n"
-        "</head>\n"
-        "<body>\n"
-        "    <h1>CS410 Webserver</h1>\n"
-        "    <img src=\"%s\" alt=\"CS410 Image\">\n"
-        "</body>\n"
-        "</html>", image_url);
-
-    write(socket, html_content, strlen(html_content));
-}
-
 int main(int argc, char *argv[]) {
     if (argc < 0){
         perror("No Port Specified");
