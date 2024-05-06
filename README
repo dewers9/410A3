@@ -1,5 +1,19 @@
+Derek Brandon Ricky
+
 RUN make to compile files
 
 SSH webserver executable to vm and run that on vm
 
-RUN client on machine
+RUN client on machine to have access to arduino via serial port
+
+Depending on what version of python you have installed on your vm you may need to change the she-bang line in the python files to end in python3
+
+if for some reason, the my-histogram.py program is not working, run :
+
+    export OPENBLAS_CORETYPE=ARMV8 python3
+
+    chmod +xwr *.cgi
+    
+    chmod +xwr *.py
+
+If the time is not being reported correctly from the server, restart the VM to resync time.
