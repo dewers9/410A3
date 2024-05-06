@@ -48,7 +48,7 @@ char * get_local_time(char* timezone){
 }
 
 int main(int argc, char *argv[]) {
-  if (argc < 0){
+  if (argc < 2){
     perror("No Port Specified");
     exit(EXIT_FAILURE);
   }

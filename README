@@ -2,7 +2,9 @@ Derek Brandon Ricky
 
 RUN make to compile files
 
-SSH webserver executable to vm and run that on vm
+UPDATE the Server IP address in client.c to match your vm IP Address
+
+COPY webserver executable to vm and run that on the vm
 
 RUN client on machine to have access to arduino via serial port
 
@@ -17,3 +19,37 @@ if for some reason, the my-histogram.py program is not working, run :
     chmod +xwr *.py
 
 If the time is not being reported correctly from the server, restart the VM to resync time.
+
+BASIC TEST CASES
+
+type directory - a request for a directory listing
+
+    ip_addr:port/directory
+
+valid HTML & Non-existing HTML
+
+    Valid:      ip_addr:port/index.html
+
+    Non-Valid   ip_addr:port/gibberish.html
+
+Static Image display
+
+    ip_addr:port/pheonix.jpg
+
+    ip_addr:port/giphy.gif    
+
+Request for .cgi script
+
+    ip_addr:port/test.cgi
+
+Requests for data from client
+
+    ip_addr:port/request?zone=int
+
+Process raw data
+
+    ip_addr:port/raw.cgi?{PUT RAW HTML CODE HERE}
+
+Dynamically created image
+
+    ip_addr:port/dynamic?file={PUT DIRECTORY HERE}

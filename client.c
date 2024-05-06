@@ -9,7 +9,6 @@
 #include <termios.h>
 
 #define SERVER_IP "192.168.64.2"  // Server IP address
-#define SERVER_PORT 5050        // Server port number as per your server configuration
 #define SERVER_PORT 5050     // Server port number as per your server configuration
 #define BUFFER_SIZE 1024        // Size of the buffer for incoming data
 
@@ -66,7 +65,7 @@ int main(int argc, char *argv[]) {
 
     int port = 5050;
 
-    if (argc < 1){
+    if (argc < 2){
         perror("No Port Specified");
         exit(EXIT_FAILURE);
     }
