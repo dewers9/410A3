@@ -351,7 +351,7 @@ int main(int argc, char *argv[]) {
 
           char http_response[1024];
 
-          snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\nContent-Type: image/%s\n\n", extension );
+          snprintf(http_response, sizeof(http_response), "HTTP/1.1 200 OK\nContent-Type: image/%s\n\n", "jpg");
 
           printf("Arrive at Image %s\n", http_response);
           fflush(stdout);
@@ -379,12 +379,6 @@ int main(int argc, char *argv[]) {
     //send(new_socket, response, strlen(response), 0);
 
     close(new_socket);
-
-
-
-
-
-
   }
 
   return 0;
